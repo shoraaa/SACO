@@ -37,7 +37,7 @@ struct ProgramOptions {
 
     // Prob. that a solution will contain only edges with the
     // highest pheromone levels. Used to calculate pheromone trail limits.
-    double p_best_ = 0.1;
+    double p_best_ = 0.01;
 
     std::string problem_path_ = "kroA100.tsp";
 
