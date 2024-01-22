@@ -4,9 +4,10 @@
 #include <fstream>
 #include <cmath>
 #include <sstream>
+#include <chrono>
 #include <ctime>
 #include <iostream>
-
+#include <iomanip>
 #include "utils.h"
 #include "json.hpp"
 
@@ -68,26 +69,10 @@ std::string get_current_datetime_string(const char *date_sep,
                                         const char *time_sep,
                                         const char *between_sep,
                                         bool include_ns) {
-    struct timespec ts;
-    timespec_get(&ts, TIME_UTC);
-    auto now   = gmtime(&ts.tv_sec);
-    auto month = (now->tm_mon + 1);
-    auto day   = now->tm_mday;
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
 
-    if (include_ns) {
-        return fmt::format("{0}{3}{1:0>2}{3}{2:0>2}{4}{5:0>2}{8}{6:0>2}{8}{7:0>2}.{9:0>9}",
-                (now->tm_year + 1900), month, day,
-                date_sep,
-                between_sep,
-                now->tm_hour, now->tm_min, now->tm_sec,
-                time_sep,
-                ts.tv_nsec);
-    }
-
-    return fmt::format("{0}{3}{1:0>2}{3}{2:0>2}{4}{5:0>2}{8}{6:0>2}{8}{7:0>2}",
-            (now->tm_year + 1900), month, day,
-            date_sep,
-            between_sep,
-            now->tm_hour, now->tm_min, now->tm_sec,
-            time_sep);
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
+    return ss.str();
 }

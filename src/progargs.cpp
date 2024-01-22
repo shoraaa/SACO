@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <stdint.h>
 
 #include "progargs.h"
 #include "include/cxxopts/cxxopts.hpp"
