@@ -324,8 +324,8 @@ public:
     /// @param sol 
     /// @return 
     double deposit_pheromone_smmas(const Ant &sol, const ProblemInstance &problem) {
-        const double deposit = -trail_limits_.min * rho_ + trail_limits_.max * rho_;
-        const double deposit_d = trail_limits_.min * rho_;
+        const double deposit = -trail_limits_.min_ * rho_ + trail_limits_.max_ * rho_;
+        const double deposit_d = trail_limits_.min_ * rho_;
         auto prev_node = sol.route_.back();
         auto &pheromone = get_pheromone();
 
