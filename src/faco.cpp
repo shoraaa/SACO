@@ -576,7 +576,8 @@ run_focused_aco(const ProblemInstance &problem,
     CandListModel model(problem, opt);
     // If the LS is on, the differences between pheromone trails should be
     // smaller -- we use calc_trail_limits_cl instead of calc_trail_limits
-    model.calc_trail_limits_ = !use_ls ? calc_trail_limits : calc_trail_limits_cl;
+    //model.calc_trail_limits_ = !use_ls ? calc_trail_limits : calc_trail_limits_cl;
+    model.calc_trail_limits_ = calc_trail_limits_smmas;
     model.init(initial_cost);
     auto &pheromone = model.get_pheromone();
     pheromone.set_all_trails(model.trail_limits_.max_);
