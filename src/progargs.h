@@ -20,14 +20,14 @@ struct ProgramOptions {
     // nodes
     double beta_ = 1;
 
-    uint32_t cand_list_size_ = 16;
+    uint32_t cand_list_size_ = 8;
 
     std::string id_ = "default";  // Id of the comp. experiment
 
     // Probability of using the current global best as a source solution
-    double gbest_as_source_prob_ = 0.01;
+    double gbest_as_source_prob_ = 0.005;
 
-    int32_t iterations_ = 5 * 10000;
+    int32_t iterations_ = 10 * 10000;
 
     int32_t local_search_ = 1;  // 0 - no local search, 1 - default LS
 
