@@ -166,7 +166,7 @@ Limits calc_trail_limits_smmas(uint32_t dimension,
     const auto tau_max = 1.0;
     const auto ratio = dimension / 32.0 * dimension;
     const auto tau_min = min(tau_max, tau_max / ratio);
-    std::cerr << fixed << setprecision(9) << tau_max << ' ' << ratio << ' ' << tau_min << std::endl;
+    // std::cerr << fixed << setprecision(9) << tau_max << ' ' << ratio << ' ' << tau_min << std::endl;
     return { tau_min, tau_max };
 }
 
