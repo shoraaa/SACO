@@ -323,9 +323,9 @@ public:
     /// @brief SMMAS deposit 
     /// @param sol 
     /// @return 
-    double deposit_pheromone_smmas(const Ant &sol, const ProblemInstance &problem, const ProgramOptions &opt) {
-        const double deposit = -opt.delta_min + opt.delta_max;
-        const double deposit_d = opt.delta_min;
+    double deposit_pheromone_smmas(const Ant &sol, const ProblemInstance &problem) {
+        const double deposit = -trail_limits_.min * rho_ + trail_limits_.max * rho_;
+        const double deposit_d = trail_limits_.min * rho_;
         auto prev_node = sol.route_.back();
         auto &pheromone = get_pheromone();
 
@@ -754,7 +754,7 @@ run_focused_aco(const ProblemInstance &problem,
                 double start = omp_get_wtime();
 
                 // model.deposit_pheromone(update_ant);
-                model.deposit_pheromone_smmas(update_ant, problem, opt);
+                model.deposit_pheromone_smmas(update_ant, problem);
 
                 pher_deposition_time += omp_get_wtime() - start;
 
