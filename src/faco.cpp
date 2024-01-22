@@ -332,7 +332,7 @@ public:
         const auto cl_size = opt.cand_list_size_;
 
         for (auto node : sol.route_) {
-            for (auto& nn_node : problem.get_nearest_neighbors(curr, cl_size)) {
+            for (auto& nn_node : problem.get_nearest_neighbors(node, cl_size)) {
                 pheromone.increase(node, nn_node, deposit_d, trail_limits_.max_);
             }
         }
