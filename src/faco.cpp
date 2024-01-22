@@ -166,7 +166,6 @@ Limits calc_trail_limits_smmas(uint32_t dimension,
     const auto tau_max = 1.0;
     const auto ratio = dimension / 32.0 * dimension;
     const auto tau_min = min(tau_max, tau_max / ratio);
-    std::cerr << fixed << setprecision(9) << tau_min * rho << ' ' << tau_max * rho << std::endl;
     return { tau_min, tau_max };
 }
 
@@ -325,22 +324,21 @@ public:
     /// @param sol 
     /// @return 
     double deposit_pheromone_smmas(const Ant &sol, const ProblemInstance &problem, const ProgramOptions &opt) {
-        const double deposit_d = trail_limits_.min_ * rho_;
-        const double deposit = -deposit_d * rho_ + trail_limits_.max_ * rho_;
+        const double delta_min = trail_limits_.min_ * rho_;
+        const double delta_max = trail_limits_.max_ * rho_;
 
         auto prev_node = sol.route_.back();
         auto &pheromone = get_pheromone();
 
         const auto cl_size = opt.cand_list_size_;
-
         for (auto node : sol.route_) {
             for (auto& nn_node : problem.get_nearest_neighbors(node, cl_size)) {
-                pheromone.increase(node, nn_node, deposit_d, trail_limits_.max_);
+                if (nn_noe != prev_node) {
+                    pheromone.increase(prev_node, node, delta_min, trail_limits_.max_);
+                } else {
+                    pheromone.increase(node, nn_node, delta_max, trail_limits_.max_);
+                }
             }
-        }
-
-        for (auto node : sol.route_) {
-            pheromone.increase(prev_node, node, deposit, trail_limits_.max_);
             prev_node = node;
         }
         return deposit;
