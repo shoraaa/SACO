@@ -45,7 +45,7 @@ struct ProgramOptions {
     std::string results_dir_ = "results";
 
     // How much of the pheromone remains after a single evaporation event
-    double rho_ = 0.3;
+    double rho_ = 0.05;
 
     // Should a picture of the solution (route) be stored into SVG file?
     bool save_route_picture_ = true;
