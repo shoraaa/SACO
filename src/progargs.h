@@ -18,7 +18,7 @@ struct ProgramOptions {
 
     // Relative importance of heuristic information, i.e. distances between
     // nodes
-    double beta_ = 1;
+    double beta_ = 5;
 
     uint32_t cand_list_size_ = 16;
 
@@ -45,7 +45,7 @@ struct ProgramOptions {
     std::string results_dir_ = "results";
 
     // How much of the pheromone remains after a single evaporation event
-    double rho_ = 0.5;
+    double rho_ = 0.375;
 
     // Should a picture of the solution (route) be stored into SVG file?
     bool save_route_picture_ = true;
