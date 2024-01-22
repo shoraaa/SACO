@@ -341,7 +341,7 @@ public:
             }
             prev_node = node;
         }
-        return deposit;
+        return delta_max;
     }
 };
 
