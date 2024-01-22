@@ -18,7 +18,7 @@ struct ProgramOptions {
 
     // Relative importance of heuristic information, i.e. distances between
     // nodes
-    double beta_ = 1;
+    double beta_ = 5;
 
     uint32_t cand_list_size_ = 16;
 
