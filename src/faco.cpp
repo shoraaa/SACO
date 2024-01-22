@@ -278,7 +278,7 @@ protected:
 public:
     Limits trail_limits_;
 
-    calc_trail_limits_fn_t calc_trail_limits_ = calc_trail_limits;
+    calc_trail_limits_fn_t calc_trail_limits_ = calc_trail_limits_smmas;
 
 
     ACOModel(const ProblemInstance &problem, const ProgramOptions &options)
@@ -546,7 +546,8 @@ run_mmas(const ProblemInstance &problem,
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
                 auto &update_ant = use_best_ant ? best_ant : *iteration_best;
 
-                model.deposit_pheromone(update_ant);
+                //model.deposit_pheromone(update_ant);
+                model.deposit_pheromone_smmas(update_ant, problem, opt);
             }
         }
     }
