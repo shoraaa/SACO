@@ -155,6 +155,19 @@ Limits calc_trail_limits_cl(uint32_t /*dimension*/,
     return { tau_min, tau_max };
 }
 
+/**
+ */
+Limits calc_trail_limits_smmas(uint32_t dimension,
+                            uint32_t cand_list_size,
+                            double p_best,
+                            double rho,
+                            double solution_cost) {
+    const auto tau_max = 1.0;
+    const auto ratio = dimension / 32.0 * dimension;
+    const auto tau_min = min(tau_max, tau_max / ratio);
+    return { tau_min, tau_max };
+}
+
 
 typedef Limits (*calc_trail_limits_fn_t)(uint32_t dimension,
                          uint32_t /*cand_list_size*/,
@@ -295,6 +308,7 @@ public:
     // Increases amount of pheromone on trails corresponding edges of the
     // given solution (sol). Returns deposited amount. 
     double deposit_pheromone(const Ant &sol) {
+        // TODO:
         const double deposit = 1.0 / sol.cost_;
         auto prev_node = sol.route_.back();
         auto &pheromone = get_pheromone();
