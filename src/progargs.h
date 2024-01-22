@@ -6,7 +6,7 @@
 #include <string>
 
 struct ProgramOptions {
-    std::string algorithm_ = "faco";
+    std::string algorithm_ = "mmas";
 
     // If #ants is set to 0 then a default strategy is used to initiate it
     uint32_t ants_count_ = 0; 
