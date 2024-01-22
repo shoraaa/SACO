@@ -33,11 +33,11 @@ struct ProgramOptions {
 
     uint32_t ls_cand_list_size_ = 20u;  // #nodes used by the LS heuristics
 
-    uint32_t min_new_edges_ = 100000;
+    uint32_t min_new_edges_ = 8;
 
     // Prob. that a solution will contain only edges with the
     // highest pheromone levels. Used to calculate pheromone trail limits.
-    double p_best_ = 0.01;
+    double p_best_ = 0.1;
 
     std::string problem_path_ = "kroA100.tsp";
 
@@ -45,7 +45,7 @@ struct ProgramOptions {
     std::string results_dir_ = "results";
 
     // How much of the pheromone remains after a single evaporation event
-    double rho_ = 0.05;
+    double rho_ = 0.4;
 
     // Should a picture of the solution (route) be stored into SVG file?
     bool save_route_picture_ = true;
