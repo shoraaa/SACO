@@ -14,7 +14,7 @@ struct ProgramOptions {
     // When looking for a next node to visit it may happen that all of the
     // nodes on the candidates list were visited -- in such case we choose
     // one of the nodes from a "backup" list
-    uint32_t backup_list_size_ = 128;
+    uint32_t backup_list_size_ = 64;
 
     // Relative importance of heuristic information, i.e. distances between
     // nodes
