@@ -25,7 +25,7 @@ struct ProgramOptions {
     std::string id_ = "default";  // Id of the comp. experiment
 
     // Probability of using the current global best as a source solution
-    double gbest_as_source_prob_ = 0.05;
+    double gbest_as_source_prob_ = 0.005;
 
     int32_t iterations_ = 10 * 10000;
 
@@ -45,7 +45,7 @@ struct ProgramOptions {
     std::string results_dir_ = "results";
 
     // How much of the pheromone remains after a single evaporation event
-    double rho_ = 0.05;
+    double rho_ = 0.3;
 
     // Should a picture of the solution (route) be stored into SVG file?
     bool save_route_picture_ = true;
