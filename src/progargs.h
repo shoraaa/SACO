@@ -25,7 +25,7 @@ struct ProgramOptions {
     std::string id_ = "default";  // Id of the comp. experiment
 
     // Probability of using the current global best as a source solution
-    double gbest_as_source_prob_ = 0.005;
+    double gbest_as_source_prob_ = 0.01;
 
     int32_t iterations_ = 10 * 10000;
 
