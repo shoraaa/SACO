@@ -14,20 +14,20 @@ struct ProgramOptions {
     // When looking for a next node to visit it may happen that all of the
     // nodes on the candidates list were visited -- in such case we choose
     // one of the nodes from a "backup" list
-    uint32_t backup_list_size_ = 128;
+    uint32_t backup_list_size_ = 64;
 
     // Relative importance of heuristic information, i.e. distances between
     // nodes
     double beta_ = 5;
 
-    uint32_t cand_list_size_ = 32;
+    uint32_t cand_list_size_ = 16;
 
     std::string id_ = "default";  // Id of the comp. experiment
 
     // Probability of using the current global best as a source solution
-    double gbest_as_source_prob_ = 0.05;
+    double gbest_as_source_prob_ = 0.01;
 
-    int32_t iterations_ = 10000;
+    int32_t iterations_ = 5 * 10000;
 
     int32_t local_search_ = 1;  // 0 - no local search, 1 - default LS
 
@@ -45,7 +45,7 @@ struct ProgramOptions {
     std::string results_dir_ = "results";
 
     // How much of the pheromone remains after a single evaporation event
-    double rho_ = 0.35;
+    double rho_ = 0.375;
 
     // Should a picture of the solution (route) be stored into SVG file?
     bool save_route_picture_ = true;
