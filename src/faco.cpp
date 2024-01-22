@@ -156,6 +156,7 @@ Limits calc_trail_limits_cl(uint32_t /*dimension*/,
 }
 
 /**
+ * TODO:
  */
 Limits calc_trail_limits_smmas(uint32_t dimension,
                             uint32_t cand_list_size,
@@ -308,12 +309,35 @@ public:
     // Increases amount of pheromone on trails corresponding edges of the
     // given solution (sol). Returns deposited amount. 
     double deposit_pheromone(const Ant &sol) {
-        // TODO:
         const double deposit = 1.0 / sol.cost_;
         auto prev_node = sol.route_.back();
         auto &pheromone = get_pheromone();
         for (auto node : sol.route_) {
             // The global update of the pheromone trails
+            pheromone.increase(prev_node, node, deposit, trail_limits_.max_);
+            prev_node = node;
+        }
+        return deposit;
+    }
+
+    /// @brief SMMAS deposit 
+    /// @param sol 
+    /// @return 
+    double deposit_pheromone_smmas(const Ant &sol, const ProblemInstance &problem, const ProgramOptions &opt) {
+        const double deposit = -opt.delta_min + opt.delta_max;
+        const double deposit_d = opt.delta_min;
+        auto prev_node = sol.route_.back();
+        auto &pheromone = get_pheromone();
+
+        const auto cl_size = opt.cand_list_size_;
+
+        for (auto node : sol.route_) {
+            for (auto& nn_node : problem.get_nearest_neighbors(curr, cl_size)) {
+                pheromone.increase(node, nn_node, delta_d, trail_limits_.max_);
+            }
+        }
+
+        for (auto node : sol.route_) {
             pheromone.increase(prev_node, node, deposit, trail_limits_.max_);
             prev_node = node;
         }
@@ -721,7 +745,7 @@ run_focused_aco(const ProblemInstance &problem,
             #pragma omp barrier
 
             model.evaporate_pheromone();
-
+            // TODO:
             #pragma omp master
             {
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
@@ -729,7 +753,8 @@ run_focused_aco(const ProblemInstance &problem,
 
                 double start = omp_get_wtime();
 
-                model.deposit_pheromone(update_ant);
+                // model.deposit_pheromone(update_ant);
+                model.deposit_pheromone_smmas(update_ant, problem, opt);
 
                 pher_deposition_time += omp_get_wtime() - start;
 
