@@ -333,7 +333,7 @@ public:
         const auto cl_size = opt.cand_list_size_;
         for (auto node : sol.route_) {
             for (auto& nn_node : problem.get_nearest_neighbors(node, cl_size)) {
-                if (nn_noe != prev_node) {
+                if (nn_node != prev_node) {
                     pheromone.increase(prev_node, node, delta_min, trail_limits_.max_);
                 } else {
                     pheromone.increase(node, nn_node, delta_max, trail_limits_.max_);
