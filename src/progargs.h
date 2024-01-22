@@ -20,7 +20,7 @@ struct ProgramOptions {
     // nodes
     double beta_ = 1;
 
-    uint32_t cand_list_size_ = 8;
+    uint32_t cand_list_size_ = 16;
 
     std::string id_ = "default";  // Id of the comp. experiment
 
