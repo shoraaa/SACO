@@ -152,6 +152,7 @@ Limits calc_trail_limits_cl(uint32_t /*dimension*/,
     const auto avg = cand_list_size;  // This is far smaller than dimension/2
     const auto p = pow(p_best, 1. / avg);
     const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
+    const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
     return { tau_min, tau_max };
 }
 
@@ -167,7 +168,7 @@ Limits calc_trail_limits_smmas(uint32_t dimension,
     const auto avg = cand_list_size;  // This is far smaller than dimension/2
     const auto p = pow(p_best, 1. / avg);
     //const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
-    const auto tau_min = min(tau_max, tau_max / 2 * dimension);
+    const auto tau_min = min(tau_max, tau_max / (2 * dimension));
     return { tau_min, tau_max };
 }
 
