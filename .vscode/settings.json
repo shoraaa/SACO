@@ -60,5 +60,12 @@
         "streambuf": "cpp",
         "typeinfo": "cpp",
         "valarray": "cpp"
-    }
+    },
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "d:\\Projects\\- Science Project\\SACO",
+            "binaryPath": "d:\\Projects\\- Science Project\\SACO\\faco",
+            "binaryArgs": []
+        }
+    ]
 }
