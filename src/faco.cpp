@@ -631,7 +631,7 @@ run_focused_aco(const ProblemInstance &problem,
     vector<double> sol_costs(ants_count);
 
     double  pher_deposition_time = 0;
-    int max_min_new_edges = 0;
+    uint32_t max_min_new_edges = 0;
 
     #pragma omp parallel default(shared)
     {
