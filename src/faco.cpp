@@ -614,6 +614,8 @@ run_focused_aco(const ProblemInstance &problem,
     auto best_ant = make_unique<Ant>(start_route, initial_cost);
 
     vector<Ant> ants(ants_count);
+    vector<Ant> recent_i_best(20);
+    size_t rib_size = 0, cur_rib_i = 0;
     Ant *iteration_best = nullptr;
 
     auto source_solution = make_unique<Solution>(start_route, best_ant->cost_);
@@ -737,7 +739,7 @@ run_focused_aco(const ProblemInstance &problem,
                     auto error = problem.calc_relative_error(best_ant->cost_);
                     best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
 
-                    model.update_trail_limits(best_ant->cost_);
+                    // model.update_trail_limits(best_ant->cost_);
                 }
 
                 auto total_edges = (dimension - 1) * ants_count;
@@ -753,11 +755,29 @@ run_focused_aco(const ProblemInstance &problem,
             #pragma omp barrier
 
             model.evaporate_pheromone();
+            if (cur_rib_i == 20) cur_rib_i = 0;
+            recent_i_best[cur_rib_i++] = *iteration_best;
+            rib_size = max(rib_size, cur_rib_i);
+
             // TODO:
             #pragma omp master
             {
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
-                auto &update_ant = use_best_ant ? *best_ant : *iteration_best;
+                auto &update_ant = *best_ant;
+
+                if (!use_best_ant) {
+                    auto best_cost = recent_i_best.front().cost_;
+                    int best_i = 0;
+                    for (size_t i = 0; i < rib_size; ++i) {
+                        if (recent_i_best[i].cost_ < best_cost) {
+                            best_cost = recent_i_best[i].cost_;
+                            best_i = i;
+                        }
+                    }
+                    update_ant = *recent_i_best[best_i];
+                }
+
+
 
                 double start = omp_get_wtime();
 
