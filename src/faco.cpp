@@ -758,13 +758,15 @@ run_focused_aco(const ProblemInstance &problem,
             #pragma omp barrier
 
             model.evaporate_pheromone();
-            if (cur_i < 20) {
-                iteration_bests[cur_i++].update(iteration_best->route_, iteration_best->cost_);
-            }
 
             // TODO:
             #pragma omp master
             {
+                if (cur_i < 20) {
+                    iteration_bests[cur_i].update(iteration_best->route_, iteration_best->cost_);
+                    cur_i += 1;
+                }
+
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
                 auto &update_ant = use_best_ant ? *best_ant : *iteration_best;
 
