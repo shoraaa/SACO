@@ -774,7 +774,7 @@ run_focused_aco(const ProblemInstance &problem,
     }
     comp_log("pher_deposition_time", pher_deposition_time);
     cout << "MAXIMUM EDGES ADDED: " << max_min_new_edges << endl;
-    cout << "AVERAGE OF EDGES: " << (double) sum_new_edges / iterations << endl;
+    cout << "AVERAGE OF EDGES: " <<  sum_new_edges / ((double) ants.size() * iterations) << endl;
 
     return unique_ptr<Solution>(dynamic_cast<Solution*>(best_ant.release()));
 }
