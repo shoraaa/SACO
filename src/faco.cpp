@@ -768,18 +768,18 @@ run_focused_aco(const ProblemInstance &problem,
 
                 auto cur_ant = &recent_i_best.front();
                 if (!use_best_ant) {
-                    auto best_cost = cur_ant->cost_;
-                    queue<Ant> tmp_queue;
-                    while (!recent_i_best.empty()) {
-                        auto tour = &recent_i_best.front();
-                        if (tour->cost_ < best_cost) {
-                            best_cost = tour->cost_;
-                            cur_ant = tour;
-                        }
-                        tmp_queue.push(*tour);
-                        recent_i_best.pop();
-                    }
-                    recent_i_best = tmp_queue;
+                    // auto best_cost = cur_ant->cost_;
+                    // queue<Ant> tmp_queue;
+                    // while (!recent_i_best.empty()) {
+                    //     auto tour = &recent_i_best.front();
+                    //     if (tour->cost_ < best_cost) {
+                    //         best_cost = tour->cost_;
+                    //         cur_ant = tour;
+                    //     }
+                    //     tmp_queue.push(*tour);
+                    //     recent_i_best.pop();
+                    // }
+                    // recent_i_best = tmp_queue;
                 }
 
                 auto &update_ant = use_best_ant ? *best_ant : *cur_ant;
