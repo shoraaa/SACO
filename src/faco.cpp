@@ -766,7 +766,7 @@ run_focused_aco(const ProblemInstance &problem,
             #pragma omp master
             {
                 if (cur_i < 20) {
-                    iteration_bests[cur_i].update(iteration_best->route_, iteration_best->cost_);
+                    //iteration_bests[cur_i].update(iteration_best->route_, iteration_best->cost_);
                     cur_i += 1;
                 }
 
