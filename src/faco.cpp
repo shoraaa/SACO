@@ -758,8 +758,8 @@ run_focused_aco(const ProblemInstance &problem,
             #pragma omp barrier
 
             model.evaporate_pheromone();
-            if (cur_i < 20) {
-                iteration_bests[cur_i++] = ants.front();
+            if (cur_i < 2) {
+                iteration_bests[cur_i++] = *iteration_best;
             }
 
             // TODO:
