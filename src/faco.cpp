@@ -757,7 +757,7 @@ run_focused_aco(const ProblemInstance &problem,
             #pragma omp barrier
 
             model.evaporate_pheromone();
-            iteration_bests.push(ants.front());
+            iteration_bests.push_back(ants.front());
 
             // TODO:
             #pragma omp master
