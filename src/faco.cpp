@@ -616,11 +616,6 @@ run_focused_aco(const ProblemInstance &problem,
     auto best_ant = make_unique<Ant>(start_route, initial_cost);
 
     vector<Ant> ants(ants_count);
-    vector<Ant> iteration_bests(20);
-    for (int i = 0; i < 20; ++i) {
-        iteration_bests[i].initialize(dimension);
-    }
-    size_t cur_i = 0;
 
     Ant *iteration_best = nullptr;
 
@@ -765,11 +760,6 @@ run_focused_aco(const ProblemInstance &problem,
             // TODO:
             #pragma omp master
             {
-                if (cur_i < 20) {
-                    iteration_bests.front().update(iteration_best->route_, iteration_best->cost_);
-                    cur_i += 1;
-                }
-
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
                 auto &update_ant = use_best_ant ? *best_ant : *iteration_best;
 
