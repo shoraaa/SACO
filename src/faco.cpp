@@ -761,8 +761,8 @@ run_focused_aco(const ProblemInstance &problem,
 
                 double start = omp_get_wtime();
 
-                model.deposit_pheromone(update_ant);
-                //model.deposit_pheromone_smmas(update_ant, problem, opt);
+                //model.deposit_pheromone(update_ant);
+                model.deposit_pheromone_smmas(update_ant, problem, opt);
 
                 pher_deposition_time += omp_get_wtime() - start;
 
