@@ -759,7 +759,7 @@ run_focused_aco(const ProblemInstance &problem,
 
             model.evaporate_pheromone();
             if (cur_i < 20) {
-                iteration_bests[cur_i++] = ants.front();;
+                iteration_bests[cur_i++] = ants.front();
             }
 
             // TODO:
