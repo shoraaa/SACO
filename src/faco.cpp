@@ -616,7 +616,8 @@ run_focused_aco(const ProblemInstance &problem,
     auto best_ant = make_unique<Ant>(start_route, initial_cost);
 
     vector<Ant> ants(ants_count);
-    vector<Ant> iteration_bests;
+    vector<Ant> iteration_bests(20);
+    size_t cur_i = 0;
 
     Ant *iteration_best = nullptr;
 
