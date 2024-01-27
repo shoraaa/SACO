@@ -758,6 +758,9 @@ run_focused_aco(const ProblemInstance &problem,
             #pragma omp barrier
 
             model.evaporate_pheromone();
+            if (cur_i < 20) {
+                iteration_bests[cur_i++].update(iteration_best->route_, iteration_best->cost_);
+            }
 
             // TODO:
             #pragma omp master
