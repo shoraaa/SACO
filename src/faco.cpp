@@ -763,10 +763,10 @@ run_focused_aco(const ProblemInstance &problem,
             #pragma omp master
             {
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
-                auto &update_ant = *best_ant;
 
+                auto cur_ant = recent_i_best.front();
                 if (!use_best_ant) {
-                    auto best_cost = recent_i_best.front().cost_;
+                    auto best_cost = cur_ant.cost_;
                     int best_i = 0;
                     for (size_t i = 0; i < rib_size; ++i) {
                         if (recent_i_best[i].cost_ < best_cost) {
@@ -774,8 +774,10 @@ run_focused_aco(const ProblemInstance &problem,
                             best_i = i;
                         }
                     }
-                    update_ant = *recent_i_best[best_i];
+                    cur_ant = recent_i_best[best_i];
                 }
+
+                auto &update_ant = use_best_ant ? *best_ant : cur_ant;
 
 
 
