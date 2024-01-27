@@ -617,6 +617,9 @@ run_focused_aco(const ProblemInstance &problem,
 
     vector<Ant> ants(ants_count);
     vector<Ant> iteration_bests(20);
+    for (int i = 0; i < 20; ++i) {
+        iteration_bests[i].initialize(dimension);
+    }
     size_t cur_i = 0;
 
     Ant *iteration_best = nullptr;
