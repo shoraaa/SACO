@@ -616,7 +616,8 @@ run_focused_aco(const ProblemInstance &problem,
     auto best_ant = make_unique<Ant>(start_route, initial_cost);
 
     vector<Ant> ants(ants_count);
-    queue<Ant> recent_i_best;
+    vector<Ant> iteration_bests;
+
     Ant *iteration_best = nullptr;
 
     auto source_solution = make_unique<Solution>(start_route, best_ant->cost_);
@@ -756,33 +757,13 @@ run_focused_aco(const ProblemInstance &problem,
             #pragma omp barrier
 
             model.evaporate_pheromone();
-            recent_i_best.push(ants.front());
-            if (recent_i_best.size() > 20) {
-                recent_i_best.pop();
-            }
+            iteration_bests.push(ants.front());
 
             // TODO:
             #pragma omp master
             {
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
-
-                auto cur_ant = &recent_i_best.front();
-                if (!use_best_ant) {
-                    // auto best_cost = cur_ant->cost_;
-                    // queue<Ant> tmp_queue;
-                    // while (!recent_i_best.empty()) {
-                    //     auto tour = &recent_i_best.front();
-                    //     if (tour->cost_ < best_cost) {
-                    //         best_cost = tour->cost_;
-                    //         cur_ant = tour;
-                    //     }
-                    //     tmp_queue.push(*tour);
-                    //     recent_i_best.pop();
-                    // }
-                    // recent_i_best = tmp_queue;
-                }
-
-                auto &update_ant = use_best_ant ? *best_ant : *cur_ant;
+                auto &update_ant = use_best_ant ? *best_ant : *iteration_best;
 
 
 
