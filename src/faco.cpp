@@ -632,6 +632,7 @@ run_focused_aco(const ProblemInstance &problem,
 
     double  pher_deposition_time = 0;
     uint32_t max_min_new_edges = 0;
+    uint32_t sum_new_edges = 0;
 
     #pragma omp parallel default(shared)
     {
@@ -716,6 +717,7 @@ run_focused_aco(const ProblemInstance &problem,
                 }
 
                 max_min_new_edges = max(max_min_new_edges, new_edges);
+                sum_new_edges += max_min_new_edges;
 
                 ant.cost_ = problem.calculate_route_length(ant.route_);
                 sol_costs[ant_idx] = ant.cost_;
@@ -772,7 +774,7 @@ run_focused_aco(const ProblemInstance &problem,
     }
     comp_log("pher_deposition_time", pher_deposition_time);
     cout << "MAXIMUM EDGES ADDED: " << max_min_new_edges << endl;
-    cout << "AVERAGE OF EDGES: " << (double) max_min_new_edges / problem.dimension_ << endl;
+    cout << "AVERAGE OF EDGES: " << (double) max_min_new_edges / (sum_new_edges) << endl;
 
     return unique_ptr<Solution>(dynamic_cast<Solution*>(best_ant.release()));
 }
