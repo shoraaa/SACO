@@ -779,6 +779,7 @@ run_focused_aco(const ProblemInstance &problem,
                         tmp_queue.push(*tour);
                         recent_i_best.pop();
                     }
+                    recent_i_best = tmp_queue;
                 }
 
                 auto &update_ant = use_best_ant ? *best_ant : *cur_ant;
