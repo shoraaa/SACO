@@ -768,7 +768,7 @@ run_focused_aco(const ProblemInstance &problem,
 
                 auto cur_ant = &recent_i_best.front();
                 if (!use_best_ant) {
-                    auto best_cost = cur_ant.cost_;
+                    auto best_cost = cur_ant->cost_;
                     queue<Ant> tmp_queue;
                     while (!recent_i_best.empty()) {
                         auto tour = &recent_i_best.front();
