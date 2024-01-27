@@ -336,9 +336,9 @@ public:
         for (auto node : sol.route_) {
             for (auto& nn_node : problem.get_nearest_neighbors(node, cl_size)) {
                 if (nn_node != prev_node) {
-                    pheromone.increase(prev_node, node, delta_min, trail_limits_.max_);
+                    pheromone.increase(nn_node, node, delta_min, trail_limits_.max_);
                 } else {
-                    pheromone.increase(node, nn_node, delta_max, trail_limits_.max_);
+                    pheromone.increase(nn_node, node, delta_max, trail_limits_.max_);
                 }
             }
             prev_node = node;
