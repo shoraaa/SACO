@@ -24,8 +24,6 @@
 #include <filesystem>
 #include <omp.h>
 
-#include <queue>
-
 #include "problem_instance.h"
 #include "ant.h"
 #include "pheromone.h"
@@ -150,26 +148,10 @@ Limits calc_trail_limits_cl(uint32_t /*dimension*/,
                             double p_best,
                             double rho,
                             double solution_cost) {
-    const auto tau_max = 1 / (solution_cost * (1. - rho));
+    const auto tau_max = 1.0;
     const auto avg = cand_list_size;  // This is far smaller than dimension/2
     const auto p = pow(p_best, 1. / avg);
     const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
-    return { tau_min, tau_max };
-}
-
-/**
- * TODO:
- */
-Limits calc_trail_limits_smmas(uint32_t dimension,
-                            uint32_t cand_list_size,
-                            double p_best,
-                            double rho,
-                            double solution_cost) {
-    const auto tau_max = 1.0;
-    const auto avg = dimension / 2;  // This is far smaller than dimension/2
-    const auto p = pow(p_best, 1. / avg);
-    const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
-    //const auto tau_min = min(tau_max, tau_max / (2 * dimension));
     return { tau_min, tau_max };
 }
 
@@ -282,7 +264,7 @@ protected:
 public:
     Limits trail_limits_;
 
-    calc_trail_limits_fn_t calc_trail_limits_ = calc_trail_limits_smmas;
+    calc_trail_limits_fn_t calc_trail_limits_ = calc_trail_limits;
 
 
     ACOModel(const ProblemInstance &problem, const ProgramOptions &options)
@@ -303,7 +285,7 @@ public:
     }
 
     void evaporate_pheromone() {
-        get_pheromone().evaporate(rho_, trail_limits_.min_);
+        get_pheromone().evaporate(1 - rho_, trail_limits_.min_, trail_limits_.min_ * rho_);
     }
 
     decltype(auto) get_pheromone() {
@@ -312,40 +294,16 @@ public:
 
     // Increases amount of pheromone on trails corresponding edges of the
     // given solution (sol). Returns deposited amount. 
-    double deposit_pheromone(const Ant &sol) {
-        const double deposit = 1.0 / sol.cost_;
+    double deposit_pheromone() {
+        const double deposit = -trail_limits_.min_ * rho_ + trail_limits_.max_ * rho_;
         auto prev_node = sol.route_.back();
         auto &pheromone = get_pheromone();
         for (auto node : sol.route_) {
             // The global update of the pheromone trails
-            pheromone.increase(prev_node, node, deposit, trail_limits_.max_);
+            pheromone.increase(prev_node, node, delta, trail_limits_.max_);
             prev_node = node;
         }
         return deposit;
-    }
-
-    /// @brief SMMAS deposit 
-    /// @param sol 
-    /// @return 
-    double deposit_pheromone_smmas(const Ant &sol, const ProblemInstance &problem, const ProgramOptions &opt) {
-        const double delta_min = trail_limits_.min_ * rho_;
-        const double delta_max = trail_limits_.max_ * rho_;
-
-        auto prev_node = sol.route_.back();
-        auto &pheromone = get_pheromone();
-
-        const auto cl_size = opt.cand_list_size_;
-        for (auto node : sol.route_) {
-            for (auto& nn_node : problem.get_nearest_neighbors(node, cl_size)) {
-                if (nn_node != prev_node) {
-                    pheromone.increase(nn_node, node, delta_min, trail_limits_.max_);
-                } else {
-                    pheromone.increase(nn_node, node, delta_max, trail_limits_.max_);
-                }
-            }
-            prev_node = node;
-        }
-        return delta_max;
     }
 };
 
@@ -550,8 +508,7 @@ run_mmas(const ProblemInstance &problem,
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
                 auto &update_ant = use_best_ant ? best_ant : *iteration_best;
 
-                //model.deposit_pheromone(update_ant);
-                model.deposit_pheromone_smmas(update_ant, problem, opt);
+                model.deposit_pheromone(update_ant);
             }
         }
     }
@@ -605,8 +562,7 @@ run_focused_aco(const ProblemInstance &problem,
     CandListModel model(problem, opt);
     // If the LS is on, the differences between pheromone trails should be
     // smaller -- we use calc_trail_limits_cl instead of calc_trail_limits
-    //model.calc_trail_limits_ = !use_ls ? calc_trail_limits : calc_trail_limits_cl;
-    model.calc_trail_limits_ = calc_trail_limits_smmas;
+    model.calc_trail_limits_ = !use_ls ? calc_trail_limits : calc_trail_limits_cl;
     model.init(initial_cost);
     auto &pheromone = model.get_pheromone();
     pheromone.set_all_trails(model.trail_limits_.max_);
@@ -615,19 +571,10 @@ run_focused_aco(const ProblemInstance &problem,
 
     auto best_ant = make_unique<Ant>(start_route, initial_cost);
 
-
-
     vector<Ant> ants(ants_count);
-
     Ant *iteration_best = nullptr;
 
     auto source_solution = make_unique<Solution>(start_route, best_ant->cost_);
-
-    // SACO
-    vector<Solution> recent;   
-    for (auto& sol : recent) {
-        sol = Solution(start_route, best_ant->cost_);
-    } 
 
     // The following are mainly for raporting purposes
     int64_t select_next_node_calls = 0;
@@ -642,8 +589,6 @@ run_focused_aco(const ProblemInstance &problem,
     vector<double> sol_costs(ants_count);
 
     double  pher_deposition_time = 0;
-    uint32_t max_min_new_edges = 0;
-    uint32_t sum_new_edges = 0;
 
     #pragma omp parallel default(shared)
     {
@@ -727,9 +672,6 @@ run_focused_aco(const ProblemInstance &problem,
                     two_opt_nn(problem, ant.route_, ls_checklist, opt.ls_cand_list_size_);
                 }
 
-                max_min_new_edges = max(max_min_new_edges, new_edges);
-                sum_new_edges += max_min_new_edges;
-
                 ant.cost_ = problem.calculate_route_length(ant.route_);
                 sol_costs[ant_idx] = ant.cost_;
             }
@@ -748,7 +690,7 @@ run_focused_aco(const ProblemInstance &problem,
                     auto error = problem.calc_relative_error(best_ant->cost_);
                     best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
 
-                    // model.update_trail_limits(best_ant->cost_);
+                    model.update_trail_limits(best_ant->cost_);
                 }
 
                 auto total_edges = (dimension - 1) * ants_count;
@@ -765,18 +707,14 @@ run_focused_aco(const ProblemInstance &problem,
 
             model.evaporate_pheromone();
 
-            // TODO:
             #pragma omp master
             {
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
                 auto &update_ant = use_best_ant ? *best_ant : *iteration_best;
 
-
-
                 double start = omp_get_wtime();
 
-                //model.deposit_pheromone(update_ant);
-                model.deposit_pheromone_smmas(update_ant, problem, opt);
+                model.deposit_pheromone(update_ant);
 
                 pher_deposition_time += omp_get_wtime() - start;
 
@@ -787,8 +725,6 @@ run_focused_aco(const ProblemInstance &problem,
         }
     }
     comp_log("pher_deposition_time", pher_deposition_time);
-    cout << "MAXIMUM EDGES ADDED: " << max_min_new_edges << endl;
-    cout << "AVERAGE OF EDGES: " <<  sum_new_edges / ((double) ants.size() * iterations) << endl;
 
     return unique_ptr<Solution>(dynamic_cast<Solution*>(best_ant.release()));
 }
