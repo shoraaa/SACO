@@ -166,7 +166,7 @@ Limits calc_trail_limits_smmas(uint32_t dimension,
                             double rho,
                             double solution_cost) {
     const auto tau_max = 1.0;
-    const auto avg = cand_list_size;  // This is far smaller than dimension/2
+    const auto avg = dimension / 2;  // This is far smaller than dimension/2
     const auto p = pow(p_best, 1. / avg);
     const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
     //const auto tau_min = min(tau_max, tau_max / (2 * dimension));
@@ -622,6 +622,12 @@ run_focused_aco(const ProblemInstance &problem,
     Ant *iteration_best = nullptr;
 
     auto source_solution = make_unique<Solution>(start_route, best_ant->cost_);
+
+    // SACO
+    vector<Solution> recent;   
+    for (auto& sol : recent) {
+        sol = Solution(start_route, best_ant->cost_);
+    } 
 
     // The following are mainly for raporting purposes
     int64_t select_next_node_calls = 0;
