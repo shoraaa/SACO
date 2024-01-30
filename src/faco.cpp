@@ -285,8 +285,8 @@ public:
     }
 
     void evaporate_pheromone() {
-        get_pheromone().evaporate(1 - rho_, trail_limits_.min_, 0/*trail_limits_.min_ * rho_*/);
-    }
+        get_pheromone().evaporate(1 - rho_, trail_limits_.min_, trail_limits_.min_ * rho_);
+    
 
     decltype(auto) get_pheromone() {
         return static_cast<Impl*>(this)->get_pheromone_impl();
@@ -295,7 +295,7 @@ public:
     // Increases amount of pheromone on trails corresponding edges of the
     // given solution (sol). Returns deposited amount. 
     double deposit_pheromone(const Ant& sol) {
-        const double deposit = 1.0 / sol.cost_;
+        const double deposit = rho_ * (trail_limits_.max - trail_limits_.min);
         auto prev_node = sol.route_.back();
         auto &pheromone = get_pheromone();
         for (auto node : sol.route_) {
@@ -611,7 +611,7 @@ run_focused_aco(const ProblemInstance &problem,
 
                 double start = omp_get_wtime();
 
-                model.deposit_pheromone(*iteration_best);
+                model.deposit_pheromone(update_ant);
 
                 pher_deposition_time += omp_get_wtime() - start;
 
