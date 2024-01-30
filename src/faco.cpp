@@ -588,9 +588,17 @@ run_focused_aco(const ProblemInstance &problem,
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
                 auto &update_ant = use_best_ant ? *best_ant : *iteration_best;
 
-                // for (auto& sol : recent_sol) {
-                //     sol.update(iteration_best->route_, iteration_best->cost_);
-                // }
+                if (!use_best_ant) {
+                    auto best_cost = recent_sol.front().cost_;
+                    update_ant = recent_sol.front();
+                    for (auto& sol : recent_sol) {
+                        if (sol.cost_ < best_cost) {
+                            best_cost = sol.cost_;
+                            update_ant = sol;
+                        }
+                    }
+                }
+                
 
                 double start = omp_get_wtime();
 
