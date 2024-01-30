@@ -591,7 +591,7 @@ run_focused_aco(const ProblemInstance &problem,
             
             #pragma omp for schedule(static)
             for (size_t i = 0; i < recent_sol.size(); ++i) {
-                auto cost = recent_sol[i].cost_ * get_rng().next_float();
+                auto cost = recent_sol[i].cost_;
                 if (cost < best_cost) {
                     best_cost = cost;
                     best_i = i;
