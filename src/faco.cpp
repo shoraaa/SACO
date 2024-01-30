@@ -599,6 +599,7 @@ run_focused_aco(const ProblemInstance &problem,
                         }
                     }
                     assert(best_i != -1);
+                    assert(best_i == 0);
                     update_ant = recent_sol[best_i];
                 }
                 
