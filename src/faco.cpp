@@ -444,7 +444,7 @@ run_focused_aco(const ProblemInstance &problem,
 
     auto source_solution = make_unique<Solution>(start_route, best_ant->cost_);
 
-    vector<Ant> recent(20);
+    vector<Ant> recent(20, Solution(start_route, best_ant->cost_));
 
 
     // The following are mainly for raporting purposes
