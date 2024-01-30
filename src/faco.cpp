@@ -444,7 +444,7 @@ run_focused_aco(const ProblemInstance &problem,
 
     auto source_solution = make_unique<Solution>(start_route, best_ant->cost_);
 
-    vector<Ant> recent_sol(1, Ant(start_route, std::numeric_limits<double>::max()));
+    vector<Ant> recent_sol(16, Ant(start_route, std::numeric_limits<double>::max()));
     size_t cur_i = 0, best_i = -1;
     double best_cost = std::numeric_limits<double>::max();
 
