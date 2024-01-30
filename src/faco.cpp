@@ -598,7 +598,6 @@ run_focused_aco(const ProblemInstance &problem,
                 }
             }
 
-
             #pragma omp master
             {
 
