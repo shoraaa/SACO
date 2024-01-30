@@ -445,6 +445,7 @@ run_focused_aco(const ProblemInstance &problem,
     auto source_solution = make_unique<Solution>(start_route, best_ant->cost_);
 
     vector<Solution> recent_sol(20, Solution(start_route, best_ant->cost_));
+    size_t cur_i = 0;
 
 
     // The following are mainly for raporting purposes
@@ -580,12 +581,16 @@ run_focused_aco(const ProblemInstance &problem,
 
             #pragma omp master
             {
+                recent_sol[cur_i].update(iteration_best->route_, iteration_best->cost_);
+                cur_i++;
+                if (cur_i == 20) cur_i = 0;
+
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
                 auto &update_ant = use_best_ant ? *best_ant : *iteration_best;
 
-
-                //recent_sol.update(iteration_best->route_, iteration_best->cost_);
-                
+                // for (auto& sol : recent_sol) {
+                //     sol.update(iteration_best->route_, iteration_best->cost_);
+                // }
 
                 double start = omp_get_wtime();
 
