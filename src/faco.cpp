@@ -593,7 +593,7 @@ run_focused_aco(const ProblemInstance &problem,
                     auto best_i = 0;
                     for (size_t i = 0; i < recent_sol.size(); ++i) {
                         auto cost = recent_sol[i].cost_ * get_rng().next_float();
-                        if (recent_sol[i].cost_ < best_cost) {
+                        if (cost < best_cost) {
                             best_cost = recent_sol[i].cost_;
                             best_i = i;
                         }
