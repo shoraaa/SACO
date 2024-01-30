@@ -148,7 +148,7 @@ Limits calc_trail_limits_cl(uint32_t /*dimension*/,
                             double p_best,
                             double rho,
                             double solution_cost) {
-    const auto tau_max = 1.  / (solution_cost * (1. - rho));
+    const auto tau_max = 1.0;
     const auto avg = cand_list_size;  // This is far smaller than dimension/2
     const auto p = pow(p_best, 1. / avg);
     const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
@@ -285,7 +285,7 @@ public:
     }
 
     void evaporate_pheromone() {
-        get_pheromone().evaporate(1 - rho_, trail_limits_.min_, trail_limits_.min_ * rho_);
+        get_pheromone().evaporate(1 - rho_, trail_limits_.min_);
     }
 
     decltype(auto) get_pheromone() {
@@ -294,8 +294,8 @@ public:
 
     // Increases amount of pheromone on trails corresponding edges of the
     // given solution (sol). Returns deposited amount. 
-    double deposit_pheromone(const Ant& sol) {
-        const double deposit = -trail_limits_.min_ * rho_ + trail_limits_.max_ * rho_;
+    double deposit_pheromone(const Ant &sol) {
+        const double deposit = 1.0 / sol.cost_;
         auto prev_node = sol.route_.back();
         auto &pheromone = get_pheromone();
         for (auto node : sol.route_) {
@@ -383,6 +383,138 @@ par_build_initial_routes(const ProblemInstance &problem,
     return routes;
 }
 
+/**
+ * Runs the MMAS for the specified number of iterations.
+ * Returns the best solution (ant).
+ */
+template<typename Model_t, typename ComputationsLog_t>
+std::unique_ptr<Solution> 
+run_mmas(const ProblemInstance &problem,
+             const ProgramOptions &opt,
+             ComputationsLog_t &comp_log) {
+
+    const auto dimension  = problem.dimension_;
+    const auto cl_size    = opt.cand_list_size_;
+    const auto bl_size    = opt.backup_list_size_;
+    const auto ants_count = opt.ants_count_;
+    const auto iterations = opt.iterations_;
+    const auto use_ls     = opt.local_search_ != 0;
+
+    const auto start_sol = build_initial_route(problem);
+    const auto initial_cost = start_sol.second;
+    comp_log("initial sol cost", initial_cost);
+
+    Model_t model(problem, opt);
+    model.init(initial_cost);
+    auto &pheromone = model.get_pheromone();
+
+    HeuristicData heuristic(problem, opt.beta_);
+
+    vector<double> cl_heuristic_cache;
+    calc_cand_list_heuristic_cache(heuristic, cl_size, cl_heuristic_cache);
+
+    vector<double> nn_product_cache(dimension * cl_size);
+
+    Ant best_ant;
+    best_ant.route_ = start_sol.first;
+    best_ant.cost_ = initial_cost;
+
+    vector<Ant> ants(ants_count);
+    Ant *iteration_best = nullptr;
+
+    // The following are mainly for raporting purposes
+    Trace<ComputationsLog_t, SolutionCost> best_cost_trace(comp_log,
+                                                           "best sol cost", iterations, 1, true, 0.1);
+    Trace<ComputationsLog_t, double> mean_cost_trace(comp_log, "sol cost mean", iterations, 20);
+    Trace<ComputationsLog_t, double> stdev_cost_trace(comp_log, "sol cost stdev", iterations, 20);
+    Timer main_timer;
+
+    vector<double> sol_costs(ants_count);
+
+    #pragma omp parallel default(shared)
+    {
+        for (int32_t iteration = 0 ; iteration < iterations ; ++iteration) {
+            #pragma omp barrier
+            // Load pheromone * heuristic for each edge connecting nearest
+            // neighbors (up to cl_size)
+            #pragma omp for schedule(static)
+            for (uint32_t node = 0 ; node < dimension ; ++node) {
+                auto cache_it = nn_product_cache.begin() + node * cl_size;
+                auto heuristic_it = cl_heuristic_cache.begin() + node * cl_size;
+                for (auto &nn : problem.get_nearest_neighbors(node, cl_size)) {
+                    *cache_it++ = *heuristic_it++ * pheromone.get(node, nn);
+                }
+            }
+
+            // Changing schedule from "static" to "dynamic" can speed up
+            // computations a bit, however it introduces non-determinism due to
+            // threads scheduling. With "static" the computations always follow
+            // the same path -- i.e. if we run the program with the same PRNG
+            // seed (--seed X) then we get exactly the same results.
+            #pragma omp for schedule(static, 1)
+            for (uint32_t ant_idx = 0; ant_idx < ants.size(); ++ant_idx) {
+                auto &ant = ants[ant_idx];
+                ant.initialize(dimension);
+
+                auto start_node = get_rng().next_uint32(dimension);
+                ant.visit(start_node);
+
+                while (ant.visited_count_ < dimension) {
+                    auto curr = ant.get_current_node();
+                    auto next = select_next_node(pheromone, heuristic,
+                                                 problem.get_nearest_neighbors(curr, cl_size),
+                                                 nn_product_cache,
+                                                 problem.get_backup_neighbors(curr, cl_size, bl_size),
+                                                 ant);
+                    ant.visit(next);
+                }
+                if (use_ls) {
+                    two_opt_nn(problem, ant.route_, true, opt.ls_cand_list_size_);
+                }
+
+                ant.cost_ = problem.calculate_route_length(ant.route_);
+                sol_costs[ant_idx] = ant.cost_;
+            }
+
+            #pragma omp master
+            {
+                iteration_best = &ants.front();
+                for (auto &ant : ants) {
+                    if (ant.cost_ < iteration_best->cost_) {
+                        iteration_best = &ant;
+                    }
+                }
+
+                mean_cost_trace.add(round(sample_mean(sol_costs), 1), iteration);
+                stdev_cost_trace.add(round(sample_stdev(sol_costs), 1), iteration);
+
+                if (iteration_best->cost_ < best_ant.cost_) {
+                    best_ant = *iteration_best;
+
+                    model.update_trail_limits(best_ant.cost_);
+
+                    auto error = problem.calc_relative_error(best_ant.cost_);
+                    best_cost_trace.add({ best_ant.cost_, error }, iteration, main_timer());
+                }
+            }
+
+            // Synchronize threads before pheromone update
+            #pragma omp barrier
+
+            model.evaporate_pheromone();
+
+            #pragma omp master
+            {
+                bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
+                auto &update_ant = use_best_ant ? best_ant : *iteration_best;
+
+                model.deposit_pheromone(update_ant);
+            }
+        }
+    }
+    return make_unique<Solution>(best_ant.route_, best_ant.cost_);
+}
+
 template<typename ComputationsLog_t>
 std::unique_ptr<Solution> 
 run_focused_aco(const ProblemInstance &problem,
@@ -406,13 +538,13 @@ run_focused_aco(const ProblemInstance &problem,
     for (size_t i = 0; i < start_sol_count; ++i) {
         start_costs[i] = problem.calculate_route_length(start_routes[i]);
     }
-    // comp_log("initial solutions build time", start_sol_timer.get_elapsed_seconds());
+    comp_log("initial solutions build time", start_sol_timer.get_elapsed_seconds());
 
     auto smallest_pos = std::distance(begin(start_costs),
                                       min_element(begin(start_costs), end(start_costs)));
     auto initial_cost = start_costs[smallest_pos];
     const auto &start_route = start_routes[smallest_pos];
-    comp_log("Initial Solution: ", initial_cost);
+    comp_log("initial sol cost", initial_cost);
 
     HeuristicData heuristic(problem, opt.beta_);
     vector<double> cl_heuristic_cache;
@@ -444,19 +576,14 @@ run_focused_aco(const ProblemInstance &problem,
 
     auto source_solution = make_unique<Solution>(start_route, best_ant->cost_);
 
-    vector<Ant> recent_sol(16, Ant(start_route, std::numeric_limits<double>::max()));
-    size_t cur_i = 0, best_i = -1;
-    double best_cost = std::numeric_limits<double>::max();
-
-
     // The following are mainly for raporting purposes
     int64_t select_next_node_calls = 0;
     Trace<ComputationsLog_t, SolutionCost> best_cost_trace(comp_log,
-                                                           "Best Solution", iterations, 1, true, 1.);
+                                                           "best sol cost", iterations, 1, true, 1.);
     Trace<ComputationsLog_t, double> select_next_node_calls_trace(comp_log,
-                                                                  "Mean percent of [next node] calls", iterations, 20);
-    Trace<ComputationsLog_t, double> mean_cost_trace(comp_log, "Solution mean", iterations, 20);
-    Trace<ComputationsLog_t, double> stdev_cost_trace(comp_log, "Solution standard deviation", iterations, 20);
+                                                                  "mean percent of select next node calls", iterations, 20);
+    Trace<ComputationsLog_t, double> mean_cost_trace(comp_log, "sol cost mean", iterations, 20);
+    Trace<ComputationsLog_t, double> stdev_cost_trace(comp_log, "sol cost stdev", iterations, 20);
     Timer main_timer;
 
     vector<double> sol_costs(ants_count);
@@ -566,9 +693,6 @@ run_focused_aco(const ProblemInstance &problem,
                     model.update_trail_limits(best_ant->cost_);
                 }
 
-                recent_sol[cur_i].update(iteration_best->route_, iteration_best->cost_);
-                cur_i++; if (cur_i == recent_sol.size()) cur_i = 0;
-
                 auto total_edges = (dimension - 1) * ants_count;
                 select_next_node_calls_trace.add(
                         round(100.0 * static_cast<double>(select_next_node_calls) / total_edges, 2),
@@ -585,29 +709,8 @@ run_focused_aco(const ProblemInstance &problem,
 
             #pragma omp master
             {
-                best_i = -1;
-                best_cost = std::numeric_limits<double>::max();
-            }
-            
-            // #pragma omp for schedule(static)
-            // for (size_t i = 0; i < recent_sol.size(); ++i) {
-            //     auto cost = recent_sol[i].cost_;
-            //     if (cost < best_cost) {
-            //         best_cost = cost;
-            //         best_i = i;
-            //     }
-            // }
-
-            #pragma omp master
-            {
-
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
                 auto &update_ant = use_best_ant ? *best_ant : *iteration_best;
-
-                // if (!use_best_ant) {
-                //     update_ant = recent_sol[best_i];
-                // }
-                
 
                 double start = omp_get_wtime();
 
@@ -687,7 +790,7 @@ int main(int argc, char *argv[]) {
         auto nn_count = std::max(args.cand_list_size_ + args.backup_list_size_,
                                  args.ls_cand_list_size_);
         problem.compute_nn_lists(nn_count);
-        // exp_log("nn and backup lists calc time", nn_lists_timer());
+        exp_log("nn and backup lists calc time", nn_lists_timer());
 
         aco_fn alg = nullptr; 
         if (args.algorithm_ == "faco") {
@@ -696,6 +799,12 @@ int main(int argc, char *argv[]) {
             if (args.ants_count_ == 0) {
                 auto r = 4 * sqrt(problem.dimension_);
                 args.ants_count_ = static_cast<uint32_t>(lround(r / 64) * 64);
+            }
+        } else if (args.algorithm_ == "mmas") {
+            alg = run_mmas<CandListModel>;
+
+            if (args.ants_count_ == 0) {
+                args.ants_count_ = problem.dimension_;
             }
         }
 
@@ -710,15 +819,15 @@ int main(int argc, char *argv[]) {
             cout << "Starting execution: " << i << "\n";
             json execution_log;
             Log exlog(execution_log, std::cout);
-            //exlog("started_at", get_current_datetime_string("-", ":", "T", true));
+            exlog("started_at", get_current_datetime_string("-", ":", "T", true));
 
             Timer execution_timer;
             auto result = alg(problem, args, exlog);
 
-            exlog("Execution Time: ", execution_timer());
-            //exlog("finished_at", get_current_datetime_string("-", ":", "T", true));
-            exlog("Final cost", result->cost_);
-            exlog("Final error", problem.calc_relative_error(result->cost_));
+            exlog("execution time", execution_timer());
+            exlog("finished_at", get_current_datetime_string("-", ":", "T", true));
+            exlog("final cost", result->cost_);
+            exlog("final error", problem.calc_relative_error(result->cost_));
 
             experiment_record["executions"].emplace_back(execution_log);
 
@@ -726,7 +835,7 @@ int main(int argc, char *argv[]) {
 
             bool is_last_execution = (i + 1 == args.repeat_);
             if (is_last_execution) {
-                exp_log("Trial time", trial_timer());
+                exp_log("trial time", trial_timer());
 
                 if (args.save_route_picture_) {
                     auto filename = ((!problem.name_.empty()) ? problem.name_ : "route") + ".svg";
