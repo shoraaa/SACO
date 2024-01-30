@@ -589,15 +589,16 @@ run_focused_aco(const ProblemInstance &problem,
                 auto &update_ant = use_best_ant ? *best_ant : *iteration_best;
 
                 if (!use_best_ant) {
-                    auto best_cost = recent_sol.front().cost_;
-                    auto best_i = 0;
+                    auto best_cost = std::numeric_limits<double>::max();
+                    auto best_i = -1;
                     for (size_t i = 0; i < recent_sol.size(); ++i) {
                         auto cost = recent_sol[i].cost_ * get_rng().next_float();
                         if (cost < best_cost) {
-                            best_cost = recent_sol[i].cost_;
+                            best_cost = cost;
                             best_i = i;
                         }
                     }
+                    assert(best_i != -1);
                     update_ant = recent_sol[best_i];
                 }
                 
