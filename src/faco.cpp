@@ -590,13 +590,14 @@ run_focused_aco(const ProblemInstance &problem,
 
                 if (!use_best_ant) {
                     auto best_cost = recent_sol.front().cost_;
-                    update_ant = recent_sol.front();
-                    for (auto& sol : recent_sol) {
-                        if (sol.cost_ < best_cost) {
-                            best_cost = sol.cost_;
-                            update_ant = sol;
+                    auto best_i = 0;
+                    for (size_t i = 0; i < recent_sol.size(); ++i) {
+                        if (recent_sol[i].cost_ < best_cost) {
+                            best_cost = recent_sol[i].cost_;
+                            best_i = i;
                         }
                     }
+                    update_ant = recent_sol[best_i];
                 }
                 
 
