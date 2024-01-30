@@ -286,7 +286,7 @@ public:
 
     void evaporate_pheromone() {
         get_pheromone().evaporate(1 - rho_, trail_limits_.min_, trail_limits_.min_ * rho_);
-    
+    }
 
     decltype(auto) get_pheromone() {
         return static_cast<Impl*>(this)->get_pheromone_impl();
