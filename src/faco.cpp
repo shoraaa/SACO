@@ -148,7 +148,7 @@ Limits calc_trail_limits_cl(uint32_t /*dimension*/,
                             double p_best,
                             double rho,
                             double solution_cost) {
-    const auto tau_max = 1.0;
+    const auto tau_max = 1.  / (solution_cost * (1. - rho));
     const auto avg = cand_list_size;  // This is far smaller than dimension/2
     const auto p = pow(p_best, 1. / avg);
     const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
