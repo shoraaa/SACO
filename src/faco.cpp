@@ -675,12 +675,6 @@ int main(int argc, char *argv[]) {
                 auto r = 4 * sqrt(problem.dimension_);
                 args.ants_count_ = static_cast<uint32_t>(lround(r / 64) * 64);
             }
-        } else if (args.algorithm_ == "mmas") {
-            alg = run_mmas<CandListModel>;
-
-            if (args.ants_count_ == 0) {
-                args.ants_count_ = problem.dimension_;
-            }
         }
 
         dump(args, experiment_record["args"]);
