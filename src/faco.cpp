@@ -143,15 +143,15 @@ Limits calc_trail_limits(uint32_t dimension,
  * This is a modified version of the original trail initialization method
  * used in the FACO
  */
-Limits calc_trail_limits_cl(uint32_t dimension,
+Limits calc_trail_limits_cl(uint32_t /*dimension*/,
                             uint32_t cand_list_size,
                             double p_best,
                             double rho,
                             double solution_cost) {
     const auto tau_max = 1.0;
     const auto avg = cand_list_size;  // This is far smaller than dimension/2
-    const auto p = pow(p_best, 1. / dimension);
-    const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1)));
+    const auto p = pow(p_best, 1. / avg);
+    const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
     return { tau_min, tau_max };
 }
 
@@ -589,14 +589,14 @@ run_focused_aco(const ProblemInstance &problem,
                 best_cost = std::numeric_limits<double>::max();
             }
             
-            #pragma omp for schedule(static)
-            for (size_t i = 0; i < recent_sol.size(); ++i) {
-                auto cost = recent_sol[i].cost_;
-                if (cost < best_cost) {
-                    best_cost = cost;
-                    best_i = i;
-                }
-            }
+            // #pragma omp for schedule(static)
+            // for (size_t i = 0; i < recent_sol.size(); ++i) {
+            //     auto cost = recent_sol[i].cost_;
+            //     if (cost < best_cost) {
+            //         best_cost = cost;
+            //         best_i = i;
+            //     }
+            // }
 
             #pragma omp master
             {
@@ -604,9 +604,9 @@ run_focused_aco(const ProblemInstance &problem,
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
                 auto &update_ant = use_best_ant ? *best_ant : *iteration_best;
 
-                if (!use_best_ant) {
-                    update_ant = recent_sol[best_i];
-                }
+                // if (!use_best_ant) {
+                //     update_ant = recent_sol[best_i];
+                // }
                 
 
                 double start = omp_get_wtime();
