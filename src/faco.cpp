@@ -589,14 +589,14 @@ run_focused_aco(const ProblemInstance &problem,
                 best_cost = std::numeric_limits<double>::max();
             }
             
-            #pragma omp for schedule(static)
-            for (size_t i = 0; i < recent_sol.size(); ++i) {
-                auto cost = recent_sol[i].cost_;
-                if (cost < best_cost) {
-                    best_cost = cost;
-                    best_i = i;
-                }
-            }
+            // #pragma omp for schedule(static)
+            // for (size_t i = 0; i < recent_sol.size(); ++i) {
+            //     auto cost = recent_sol[i].cost_;
+            //     if (cost < best_cost) {
+            //         best_cost = cost;
+            //         best_i = i;
+            //     }
+            // }
 
             #pragma omp master
             {
@@ -604,9 +604,9 @@ run_focused_aco(const ProblemInstance &problem,
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
                 auto &update_ant = use_best_ant ? *best_ant : *iteration_best;
 
-                if (!use_best_ant) {
-                    update_ant = recent_sol[best_i];
-                }
+                // if (!use_best_ant) {
+                //     update_ant = recent_sol[best_i];
+                // }
                 
 
                 double start = omp_get_wtime();
