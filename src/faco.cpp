@@ -295,7 +295,7 @@ public:
     // Increases amount of pheromone on trails corresponding edges of the
     // given solution (sol). Returns deposited amount. 
     double deposit_pheromone(const Ant& sol) {
-        const double deposit = -trail_limits_.min_ * rho_ + trail_limits_.max_ * rho_;
+        const double deposit = 1.0 / sol.cost_;
         auto prev_node = sol.route_.back();
         auto &pheromone = get_pheromone();
         for (auto node : sol.route_) {
