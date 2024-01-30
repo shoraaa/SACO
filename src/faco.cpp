@@ -444,7 +444,8 @@ run_focused_aco(const ProblemInstance &problem,
 
     auto source_solution = make_unique<Solution>(start_route, best_ant->cost_);
 
-    Solution recent_sol(start_route, best_ant->cost_);
+
+    Solution recent_sol;
 
 
     // The following are mainly for raporting purposes
