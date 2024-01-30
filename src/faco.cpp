@@ -444,7 +444,7 @@ run_focused_aco(const ProblemInstance &problem,
 
     auto source_solution = make_unique<Solution>(start_route, best_ant->cost_);
 
-    vector<Solution> recent_sol(20, Solution(start_route, best_ant->cost_));
+    vector<Ant> recent_sol(20, Ant(start_route, best_ant->cost_));
     size_t cur_i = 0;
 
 
