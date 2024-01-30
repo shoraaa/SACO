@@ -294,13 +294,13 @@ public:
 
     // Increases amount of pheromone on trails corresponding edges of the
     // given solution (sol). Returns deposited amount. 
-    double deposit_pheromone() {
+    double deposit_pheromone(const Ant& sol) {
         const double deposit = -trail_limits_.min_ * rho_ + trail_limits_.max_ * rho_;
         auto prev_node = sol.route_.back();
         auto &pheromone = get_pheromone();
         for (auto node : sol.route_) {
             // The global update of the pheromone trails
-            pheromone.increase(prev_node, node, delta, trail_limits_.max_);
+            pheromone.increase(prev_node, node, deposit, trail_limits_.max_);
             prev_node = node;
         }
         return deposit;
@@ -538,13 +538,13 @@ run_focused_aco(const ProblemInstance &problem,
     for (size_t i = 0; i < start_sol_count; ++i) {
         start_costs[i] = problem.calculate_route_length(start_routes[i]);
     }
-    comp_log("initial solutions build time", start_sol_timer.get_elapsed_seconds());
+    // comp_log("initial solutions build time", start_sol_timer.get_elapsed_seconds());
 
     auto smallest_pos = std::distance(begin(start_costs),
                                       min_element(begin(start_costs), end(start_costs)));
     auto initial_cost = start_costs[smallest_pos];
     const auto &start_route = start_routes[smallest_pos];
-    comp_log("initial sol cost", initial_cost);
+    comp_log("Initial Solution: ", initial_cost);
 
     HeuristicData heuristic(problem, opt.beta_);
     vector<double> cl_heuristic_cache;
