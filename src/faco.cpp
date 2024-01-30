@@ -444,10 +444,7 @@ run_focused_aco(const ProblemInstance &problem,
 
     auto source_solution = make_unique<Solution>(start_route, best_ant->cost_);
 
-    vector<Ant*> recent(20);
-    for (auto itr : recent) {
-        itr = make_unique<Solution>(start_route, best_ant->cost_);
-    }
+    Ant recent_ant;
 
 
     // The following are mainly for raporting purposes
@@ -586,9 +583,8 @@ run_focused_aco(const ProblemInstance &problem,
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
                 auto &update_ant = use_best_ant ? *best_ant : *iteration_best;
 
-                for (auto itr : recent) {
-                    itr->update(iteration_best->route_, iteration_best->cost_);
-                }
+                ant.update(iteration_best->route_, iteration_best->cost_);
+                
 
                 double start = omp_get_wtime();
 
