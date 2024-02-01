@@ -445,11 +445,6 @@ run_focused_aco(const ProblemInstance &problem,
 
     auto source_solution = make_unique<Solution>(start_route, best_ant->cost_);
 
-    vector<Ant> recent_sol(16, Ant(start_route, std::numeric_limits<double>::max()));
-    size_t cur_i = 0, best_i = -1;
-    double best_cost = std::numeric_limits<double>::max();
-
-
     // The following are mainly for raporting purposes
     int64_t select_next_node_calls = 0;
     Trace<ComputationsLog_t, SolutionCost> best_cost_trace(comp_log,
@@ -584,31 +579,11 @@ run_focused_aco(const ProblemInstance &problem,
 
             model.evaporate_pheromone();
 
-            // #pragma omp master
-            // {
-            //     best_i = -1;
-            //     best_cost = std::numeric_limits<double>::max();
-            // }
-            
-            // #pragma omp for schedule(static)
-            // for (size_t i = 0; i < recent_sol.size(); ++i) {
-            //     auto cost = recent_sol[i].cost_ * get_rng().next_float();
-            //     if (cost < best_cost) {
-            //         best_cost = cost;
-            //         best_i = i;
-            //     }
-            // }
-
             #pragma omp master
             {
 
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
                 auto &update_ant = use_best_ant ? *best_ant : *iteration_best;
-
-                // if (!use_best_ant) {
-                //     update_ant = recent_sol[best_i];
-                // }
-                
 
                 double start = omp_get_wtime();
 
