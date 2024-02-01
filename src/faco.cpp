@@ -557,9 +557,12 @@ run_focused_aco(const ProblemInstance &problem,
                     best_ant->update(iteration_best->route_, iteration_best->cost_);
 
                     auto error = problem.calc_relative_error(best_ant->cost_);
-                    best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
+                    //best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
 
                     model.update_trail_limits(best_ant->cost_);
+                }
+                if (iteration % 1000 == 0) {
+                    best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
                 }
 
                 auto total_edges = (dimension - 1) * ants_count;
