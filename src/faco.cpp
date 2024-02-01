@@ -562,9 +562,6 @@ run_focused_aco(const ProblemInstance &problem,
                     model.update_trail_limits(best_ant->cost_);
                 }
 
-                recent_sol[cur_i].update(iteration_best->route_, iteration_best->cost_);
-                cur_i++; if (cur_i == recent_sol.size()) cur_i = 0;
-
                 auto total_edges = (dimension - 1) * ants_count;
                 select_next_node_calls_trace.add(
                         round(100.0 * static_cast<double>(select_next_node_calls) / total_edges, 2),
