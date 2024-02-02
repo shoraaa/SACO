@@ -51,6 +51,28 @@ struct Solution {
         }
     }
 
+    void swap_(uint32_t i, uint32_t j) {
+        swap(node_indices_[route_[i]], node_indices_[route_[j]]);
+        swap(route_[i], route_[j]);
+    }
+
+    void relocate(uint32_t u, uint32_t v) {
+        // place v after u
+        uint32_t i = node_indices_[u], j = node_indices_[v];
+        if (j < i) {
+            swap_(i, j);
+            while (j < i - 1) {
+                swap_(j, j + 1);
+                ++j;
+            }
+        } else {
+            while (j > i + 1) {
+                swap_(j, j - 1);
+                --j;
+            }
+        }
+    }
+
     // We assume that route is undirected
     [[nodiscard]] bool contains_edge(uint32_t edge_head, uint32_t edge_tail) const {
         return get_succ(edge_head) == edge_tail   // same edge

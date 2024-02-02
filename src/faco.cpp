@@ -458,7 +458,7 @@ run_focused_aco(const ProblemInstance &problem,
     vector<double> sol_costs(ants_count);
 
     double  pher_deposition_time = 0;
-    cerr << "trail max: " << model.trail_limits_.min_ << endl;
+    cerr << "trail min: " << model.trail_limits_.min_ << endl;
 
     #pragma omp parallel default(shared)
     {
@@ -492,12 +492,12 @@ run_focused_aco(const ProblemInstance &problem,
             #pragma omp for schedule(static, 1) reduction(+ : select_next_node_calls)
             for (uint32_t ant_idx = 0; ant_idx < ants.size(); ++ant_idx) {
                 uint32_t target_new_edges = opt.min_new_edges_;
+                
 
                 auto &ant = ants[ant_idx];
                 ant.initialize(dimension);
 
                 auto start_node = get_rng().next_uint32(dimension);
-                ant.visit(start_node);
 
                 ls_checklist.clear();
                 ls_checklist.push_back(start_node);
@@ -507,37 +507,60 @@ run_focused_aco(const ProblemInstance &problem,
                 // skip the check for the closing edge (minor optimization).
                 uint32_t new_edges = 0;
 
-                while (ant.visited_count_ < dimension) {
-                    auto curr = ant.get_current_node();
-                    auto next = select_next_node(pheromone, heuristic,
+                uint32_t k = 1, u = start_node;
+                ant.update(source_solution->route_, source_solution->cost_);
+                while (k < dimension && new_edges < target_new_edges) {
+                    auto v = select_next_node(pheromone, heuristic,
                                                  problem.get_nearest_neighbors(curr, cl_size),
                                                  nn_product_cache,
                                                  problem.get_backup_neighbors(curr, cl_size, bl_size),
                                                  ant);
-                    ant.visit(next);
+                    auto v_pred = ant.get_pred(v);
+                    ++k;
 
-                    ++select_next_node_calls;
-
-                    if (!source_solution->contains_edge(curr, next)) {
+                    if (!source_solution->contains_edge(u, v)) {
+                        ant.relocate(u, v);
                         ++new_edges;
-                        // The endpoint (tail) of the new edge should be
-                        // checked by the local search
-                        ls_checklist.push_back(next);
+                        ls_checklist.push_back(u);
+                        ls_checklist.push_back(v);
+                        ls_checklist.push_back(v_pred);
                     }
 
-                    // If we have enough new edges, we try to copy "old" edges
-                    // from the source_route.
-                    if (new_edges >= target_new_edges) {
-                        // Forward direction, start at { next, succ(next) }
-                        auto it = source_solution->get_iterator(next);
-                        while (ant.try_visit(it.goto_succ()) ) {
-                        }
-                        // Backward direction
-                        it.goto_pred();  // Reverse .goto_succ() from above
-                        while (ant.try_visit(it.goto_pred()) ) {
-                        }
-                    }
                 }
+
+                //ant.visit(start_node);
+                // while (ant.visited_count_ < dimension) {
+                //     auto curr = ant.get_current_node();
+                //     auto next = select_next_node(pheromone, heuristic,
+                //                                  problem.get_nearest_neighbors(curr, cl_size),
+                //                                  nn_product_cache,
+                //                                  problem.get_backup_neighbors(curr, cl_size, bl_size),
+                //                                  ant);
+                //     ant.visit(next);
+
+                //     ++select_next_node_calls;
+
+                //     if (!source_solution->contains_edge(curr, next)) {
+                //         ++new_edges;
+                //         // The endpoint (tail) of the new edge should be
+                //         // checked by the local search
+                //         ls_checklist.push_back(next);
+                //     }
+
+                //     // If we have enough new edges, we try to copy "old" edges
+                //     // from the source_route.
+                //     if (new_edges >= target_new_edges) {
+                //         // Forward direction, start at { next, succ(next) }
+                //         auto it = source_solution->get_iterator(next);
+                //         while (ant.try_visit(it.goto_succ()) ) {
+                //         }
+                //         // Backward direction
+                //         it.goto_pred();  // Reverse .goto_succ() from above
+                //         while (ant.try_visit(it.goto_pred()) ) {
+                //         }
+                //     }
+                // }
+
                 if (use_ls) {
                     two_opt_nn(problem, ant.route_, ls_checklist, opt.ls_cand_list_size_);
                 }
