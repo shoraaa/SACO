@@ -458,6 +458,7 @@ run_focused_aco(const ProblemInstance &problem,
     vector<double> sol_costs(ants_count);
 
     double  pher_deposition_time = 0;
+    comp_log("trail max", trail_limits_.max_);
 
     #pragma omp parallel default(shared)
     {
@@ -599,7 +600,6 @@ run_focused_aco(const ProblemInstance &problem,
         }
     }
     comp_log("pher_deposition_time", pher_deposition_time);
-    comp_log("trail max", trail_limits_.max_);
 
     return unique_ptr<Solution>(dynamic_cast<Solution*>(best_ant.release()));
 }
