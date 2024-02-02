@@ -152,7 +152,7 @@ Limits calc_trail_limits_cl(uint32_t /*dimension*/,
     const auto avg = cand_list_size;  // This is far smaller than dimension/2
     const auto p = pow(p_best, 1. / avg);
     const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
-    //const auto tau_min = 0.1;
+    //const auto tau_min = 0.5;
     return { tau_min, tau_max };
 }
 
@@ -458,7 +458,6 @@ run_focused_aco(const ProblemInstance &problem,
     vector<double> sol_costs(ants_count);
 
     double  pher_deposition_time = 0;
-    cout << "trail max: " << model.trail_limits_.max_ << endl;
 
     #pragma omp parallel default(shared)
     {
