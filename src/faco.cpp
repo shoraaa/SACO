@@ -522,13 +522,13 @@ run_focused_aco(const ProblemInstance &problem,
 
                     ++select_next_node_calls;
 
-                    if (!source_solution->contains_edge(u, v)) {
-                        ant.relocate(u, v);
-                        ++new_edges;
-                        ls_checklist.push_back(u);
-                        ls_checklist.push_back(v);
-                        ls_checklist.push_back(v_pred);
-                    }
+                    // if (!source_solution->contains_edge(u, v)) {
+                    //     ant.relocate(u, v);
+                    //     ++new_edges;
+                    //     ls_checklist.push_back(u);
+                    //     ls_checklist.push_back(v);
+                    //     ls_checklist.push_back(v_pred);
+                    // }
 
                 }
 
