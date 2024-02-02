@@ -52,8 +52,8 @@ struct Solution {
     }
 
     void swap_(uint32_t i, uint32_t j) {
-        swap(node_indices_[route_[i]], node_indices_[route_[j]]);
-        swap(route_[i], route_[j]);
+        std::swap(node_indices_[route_[i]], node_indices_[route_[j]]);
+        std::swap(route_[i], route_[j]);
     }
 
     void relocate(uint32_t u, uint32_t v) {
