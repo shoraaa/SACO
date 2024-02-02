@@ -591,8 +591,6 @@ run_focused_aco(const ProblemInstance &problem,
 
                     ++select_next_node_calls;
 
-                    u = v;
-
                     if (!source_solution->contains_edge(u, v)) {
                         ant.relocate(u, v);
                         ++new_edges;
@@ -601,6 +599,7 @@ run_focused_aco(const ProblemInstance &problem,
                         ls_checklist.push_back(v_pred);
                     }
 
+                    u = v;
                 }
   
                 //ant.visit(start_node);
