@@ -143,14 +143,15 @@ Limits calc_trail_limits(uint32_t dimension,
  * This is a modified version of the original trail initialization method
  * used in the FACO
  */
-Limits calc_trail_limits_cl(uint32_t /*dimension*/,
+Limits calc_trail_limits_cl(uint32_t dimension,
                             uint32_t cand_list_size,
                             double p_best,
                             double rho,
                             double solution_cost) {
     const auto tau_max = 1.0;
-    const auto avg = cand_list_size;  // This is far smaller than dimension/2
-    const auto p = pow(p_best, 1. / avg);
+    const auto cand_count = dimension;
+    const auto avg = cand_count / 2.;
+    const auto p = pow(p_best, 1. / cand_count);
     const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
     //const auto tau_min = 0.5;
     return { tau_min, tau_max };
