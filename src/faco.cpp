@@ -531,7 +531,7 @@ run_focused_aco(const ProblemInstance &problem,
                 //     }
 
                 // }
-                break;
+  
                 //ant.visit(start_node);
                 // while (ant.visited_count_ < dimension) {
                 //     auto curr = ant.get_current_node();
