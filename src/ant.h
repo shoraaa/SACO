@@ -115,6 +115,7 @@ struct Ant : public Solution {
         visited_count_ = 0;
 
         route_.resize(dimension);
+        node_indices_.reserve(dimension);
 
         unvisited_.resize(dimension);
         std::iota(unvisited_.begin(), unvisited_.end(), 0);
