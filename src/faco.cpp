@@ -458,7 +458,7 @@ run_focused_aco(const ProblemInstance &problem,
     vector<double> sol_costs(ants_count);
 
     double  pher_deposition_time = 0;
-    cerr << "trail max: " << model.trail_limits_.max_ << endl;
+    cerr << "trail max: " << model.trail_limits_.min_ << endl;
 
     #pragma omp parallel default(shared)
     {
