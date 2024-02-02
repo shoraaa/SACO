@@ -149,7 +149,7 @@ Limits calc_trail_limits_cl(uint32_t dimension,
                             double rho,
                             double solution_cost) {
     const auto tau_max = 1.0;
-    const auto tau_min = 0.75;
+    const auto tau_min = 0.5;
     // const auto avg = cand_list_size;  // This is far smaller than dimension/2
     // const auto p = pow(p_best, 1. / avg);
     // const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
@@ -576,28 +576,27 @@ run_focused_aco(const ProblemInstance &problem,
                 // skip the check for the closing edge (minor optimization).
                 uint32_t new_edges = 0;
 
-                uint32_t k = 1, u = start_node;
+                uint32_t u = start_node;
                 ant.update(source_solution->route_, source_solution->cost_);
                 ant.visited_bitmask_.set_bit(u);
-                while (k < dimension && new_edges <= target_new_edges) {
+                while (new_edges <= target_new_edges) {
+                    auto u_next = ant.get_succ(u);
+                    ant.visited_bitmask_.set_bit(u_next);
+                    
                     auto v = select_next_node_(pheromone, heuristic,
                                                  problem.get_nearest_neighbors(u, cl_size),
                                                  nn_product_cache,
                                                  problem.get_backup_neighbors(u, cl_size, bl_size),
                                                  ant, u);
                     ant.visited_bitmask_.set_bit(v);
+                    
                     auto v_pred = ant.get_pred(v);
-                    ++k;
-
-                    ++select_next_node_calls;
-
-                    if (!source_solution->contains_edge(u, v)) {
-                        ant.relocate(u, v);
-                        ++new_edges;
-                        ls_checklist.push_back(u);
-                        ls_checklist.push_back(v);
-                        ls_checklist.push_back(v_pred);
-                    }
+                    
+                    ant.relocate(u, v);
+                    ++new_edges;
+                    ls_checklist.push_back(u);
+                    ls_checklist.push_back(v);
+                    ls_checklist.push_back(v_pred);
 
                     u = v;
                 }
