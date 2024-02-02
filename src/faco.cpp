@@ -234,6 +234,75 @@ uint32_t select_next_node(const Pheromone_t &pheromone,
     return chosen_node;
 }
 
+template<typename Pheromone_t>
+uint32_t select_next_node_(const Pheromone_t &pheromone,
+                          const HeuristicData &heuristic,
+                          const NodeList &nn_list,
+                          const vector<double> &nn_product_cache,
+                          const NodeList &backup_nn_list,
+                          Ant &ant, uint32_t current_node) {
+    assert(!ant.route_.empty());
+    assert(nn_list.size() <= ::MaxCandListSize);
+
+    // A list of the nearest unvisited neighbors of current_node, i.e. so
+    // called "candidates list", or "cl" in short
+    uint32_t cl[::MaxCandListSize];
+    uint32_t cl_size = 0;
+
+    // In the MMAS the local pheromone evaporation is absent thus for each ant
+    // the product of the pheromone trail and the heuristic will be the same
+    // and we can pre-load it into nn_product_cache
+    auto nn_product_cache_it = nn_product_cache.begin()
+                             + static_cast<uint32_t>(current_node * nn_list.size());
+
+    double cl_product_prefix_sums[::MaxCandListSize];
+    double cl_products_sum = 0;
+    double max_prod = 0;
+    uint32_t max_node = current_node;
+    for (auto node : nn_list) {
+        uint32_t valid = 1 - ant.is_visited(node);
+        cl[cl_size] = node;
+        auto prod = *nn_product_cache_it * valid;
+        cl_products_sum += prod;
+        cl_product_prefix_sums[cl_size] = cl_products_sum;
+        cl_size += valid;
+        ++nn_product_cache_it;
+        if (max_prod < prod) {
+            max_prod = prod;
+            max_node = node;
+        }
+    }
+
+    uint32_t chosen_node = max_node;
+
+    if (cl_size > 1) { // Select from the closest nodes
+        // The following could be done using binary search in O(log(cl_size))
+        // time but should not matter for small values of cl_size
+        chosen_node = cl[cl_size - 1];
+        const auto r = get_rng().next_float() * cl_products_sum;
+        for (uint32_t i = 0; i < cl_size; ++i) {
+            if (r < cl_product_prefix_sums[i]) {
+                chosen_node = cl[i];
+                break;
+            }
+        }
+    } else if (cl_size == 0) { // Select from the rest of the unvisited nodes the one with the
+                               // maximum product of pheromone and heuristic
+        for (auto node : backup_nn_list) {
+            if (!ant.is_visited(node)) {
+                chosen_node = node;
+                break ;
+            }
+        }
+        if (chosen_node == max_node) {  // Still nothing selected
+            chosen_node = select_max_product_node(current_node, ant, pheromone, heuristic);
+        }
+    }
+    assert(chosen_node != current_node);
+    return chosen_node;
+}
+
+
 
 void calc_cand_list_heuristic_cache(HeuristicData &heuristic,
                                     uint32_t cl_size,
@@ -511,12 +580,11 @@ run_focused_aco(const ProblemInstance &problem,
                 // ant.update(source_solution->route_, source_solution->cost_);
                 ant.visited_bitmask_.set_bit(u);
                 while (k < dimension && new_edges < target_new_edges) {
-                    
-                    auto v = select_next_node(pheromone, heuristic,
+                    auto v = select_next_node_(pheromone, heuristic,
                                                  problem.get_nearest_neighbors(u, cl_size),
                                                  nn_product_cache,
                                                  problem.get_backup_neighbors(u, cl_size, bl_size),
-                                                 ant);
+                                                 ant, u);
                     cerr << k << ' ' << u << ' ' << v << '\n';
                     ant.visited_bitmask_.set_bit(v);
                     auto v_pred = ant.get_pred(v);
