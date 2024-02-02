@@ -518,6 +518,8 @@ run_focused_aco(const ProblemInstance &problem,
                     auto v_pred = ant.get_pred(v);
                     ++k;
 
+                    ++select_next_node_calls;
+
                     if (!source_solution->contains_edge(u, v)) {
                         ant.relocate(u, v);
                         ++new_edges;
