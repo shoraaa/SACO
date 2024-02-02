@@ -1,0 +1,54 @@
+{
+ "Trial time": 0.0027570560000000004,
+ "args": {
+  "alg": "faco",
+  "ants": 64,
+  "backup list size": 64,
+  "beta": 1.0,
+  "cand list size": 16,
+  "gbest as source prob": 0.01,
+  "id": "default",
+  "iterations": 10,
+  "local search": 1,
+  "ls cand list size": 20,
+  "min new edges": 8,
+  "p best": 0.1,
+  "picture": true,
+  "problem": "./instances/kroA100.tsp",
+  "repeat": 1,
+  "results dir": "results",
+  "rho": 0.5,
+  "seed": 3660293745,
+  "threads": 0
+ },
+ "executions": [
+  {
+   "Best Solution recorded every ith iter": 1,
+   "Best Solution times": [],
+   "Best Solution values": [],
+   "Execution Time: ": 0.002668712,
+   "Final cost": 21282.0,
+   "Final error": 0.0,
+   "Initial Solution: ": 21282.0,
+   "Mean percent of [next node] calls recorded every ith iter": 20,
+   "Mean percent of [next node] calls values": [
+    8.08
+   ],
+   "Solution mean recorded every ith iter": 20,
+   "Solution mean values": [
+    21282.0
+   ],
+   "Solution standard deviation recorded every ith iter": 20,
+   "Solution standard deviation values": [
+    0.0
+   ],
+   "pher_deposition_time": 1.0924000093837094e-05
+  }
+ ],
+ "trial max cost": 21282,
+ "trial max error": 0.0,
+ "trial mean cost": 21282.0,
+ "trial mean error": 0.0,
+ "trial min cost": 21282,
+ "trial min error": 0.0
+}

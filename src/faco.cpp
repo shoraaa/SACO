@@ -577,7 +577,7 @@ run_focused_aco(const ProblemInstance &problem,
                 uint32_t new_edges = 0;
 
                 uint32_t k = 1, u = start_node;
-                // ant.update(source_solution->route_, source_solution->cost_);
+                ant.update(source_solution->route_, source_solution->cost_);
                 ant.visited_bitmask_.set_bit(u);
                 while (k < dimension && new_edges < target_new_edges) {
                     auto v = select_next_node_(pheromone, heuristic,
@@ -585,7 +585,6 @@ run_focused_aco(const ProblemInstance &problem,
                                                  nn_product_cache,
                                                  problem.get_backup_neighbors(u, cl_size, bl_size),
                                                  ant, u);
-                    cerr << k << ' ' << u << ' ' << v << '\n';
                     ant.visited_bitmask_.set_bit(v);
                     auto v_pred = ant.get_pred(v);
                     ++k;
@@ -594,13 +593,13 @@ run_focused_aco(const ProblemInstance &problem,
 
                     u = v;
 
-                    // if (!source_solution->contains_edge(u, v)) {
-                    //     ant.relocate(u, v);
-                    //     ++new_edges;
-                    //     ls_checklist.push_back(u);
-                    //     ls_checklist.push_back(v);
-                    //     ls_checklist.push_back(v_pred);
-                    // }
+                    if (!source_solution->contains_edge(u, v)) {
+                        ant.relocate(u, v);
+                        ++new_edges;
+                        ls_checklist.push_back(u);
+                        ls_checklist.push_back(v);
+                        ls_checklist.push_back(v_pred);
+                    }
 
                 }
   
