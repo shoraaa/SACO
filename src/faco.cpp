@@ -517,8 +517,9 @@ run_focused_aco(const ProblemInstance &problem,
                                                  nn_product_cache,
                                                  problem.get_backup_neighbors(u, cl_size, bl_size),
                                                  ant);
-                    // ant.visited_bitmask_.set_bit(v);
-                    // auto v_pred = ant.get_pred(v);
+                    cerr << k << ' ' << u << ' ' << v << '\n';
+                    ant.visited_bitmask_.set_bit(v);
+                    auto v_pred = ant.get_pred(v);
                     ++k;
 
                     ++select_next_node_calls;
