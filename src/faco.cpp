@@ -508,7 +508,7 @@ run_focused_aco(const ProblemInstance &problem,
                 uint32_t new_edges = 0;
 
                 uint32_t k = 1, u = start_node;
-                // ant.update(source_solution->route_, source_solution->cost_);
+                ant.update(source_solution->route_, source_solution->cost_);
                 ant.visited_bitmask_.set_bit(u);
                 // while (k < dimension && new_edges < target_new_edges) {
                 //     auto v = select_next_node(pheromone, heuristic,
