@@ -511,11 +511,11 @@ run_focused_aco(const ProblemInstance &problem,
                 ant.update(source_solution->route_, source_solution->cost_);
                 ant.visited_bitmask_.set_bit(u);
                 while (k < dimension && new_edges < target_new_edges) {
-                    // auto v = select_next_node(pheromone, heuristic,
-                    //                              problem.get_nearest_neighbors(u, cl_size),
-                    //                              nn_product_cache,
-                    //                              problem.get_backup_neighbors(u, cl_size, bl_size),
-                    //                              ant);
+                    auto v = select_next_node(pheromone, heuristic,
+                                                 problem.get_nearest_neighbors(u, cl_size),
+                                                 nn_product_cache,
+                                                 problem.get_backup_neighbors(u, cl_size, bl_size),
+                                                 ant);
                     // ant.visited_bitmask_.set_bit(v);
                     // auto v_pred = ant.get_pred(v);
                     ++k;
