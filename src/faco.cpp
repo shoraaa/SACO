@@ -148,11 +148,11 @@ Limits calc_trail_limits_cl(uint32_t dimension,
                             double p_best,
                             double rho,
                             double solution_cost) {
-    const auto tau_max = 1.0;
-    const auto tau_min = 0.1;
-    // const auto avg = cand_list_size;  // This is far smaller than dimension/2
-    // const auto p = pow(p_best, 1. / avg);
-    // const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
+    const auto tau_max = 1 / (solution_cost * (1. - rho));
+    // const auto tau_min = 0.5;
+    const auto avg = cand_list_size;  // This is far smaller than dimension/2
+    const auto p = pow(p_best, 1. / avg);
+    const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
     return { tau_min, tau_max };
 }
 
@@ -355,7 +355,7 @@ public:
     }
 
     void evaporate_pheromone() {
-        get_pheromone().evaporate(1 - rho_, trail_limits_.min_, trail_limits_.min_ * rho_);
+        get_pheromone().evaporate(1 - rho_, trail_limits_.min_, 0);//trail_limits_.min_ * rho_);
     }
 
     decltype(auto) get_pheromone() {
@@ -365,7 +365,7 @@ public:
     // Increases amount of pheromone on trails corresponding edges of the
     // given solution (sol). Returns deposited amount. 
     double deposit_pheromone(const Ant& sol) {
-        const double deposit = rho_ * (trail_limits_.max_ - trail_limits_.min_);
+        const double deposit = 1 / sol.cost_; //rho_ * (trail_limits_.max_ - trail_limits_.min_);
         auto prev_node = sol.route_.back();
         auto &pheromone = get_pheromone();
         for (auto node : sol.route_) {
@@ -581,7 +581,7 @@ run_focused_aco(const ProblemInstance &problem,
                 ant.visited_bitmask_.set_bit(u);
                 while (new_edges <= target_new_edges) {
                     auto u_next = ant.get_succ(u);
-                    ant.visited_bitmask_.set_bit(u_next);
+                    // ant.visited_bitmask_.set_bit(u_next);
                     
                     auto v = select_next_node_(pheromone, heuristic,
                                                  problem.get_nearest_neighbors(u, cl_size),
