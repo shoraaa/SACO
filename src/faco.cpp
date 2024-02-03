@@ -581,7 +581,7 @@ run_focused_aco(const ProblemInstance &problem,
                 ant.visited_bitmask_.set_bit(u);
                 while (new_edges <= target_new_edges) {
                     auto u_next = ant.get_succ(u);
-                    // ant.visited_bitmask_.set_bit(u_next);
+                    ant.visited_bitmask_.set_bit(u_next);
                     
                     auto v = select_next_node_(pheromone, heuristic,
                                                  problem.get_nearest_neighbors(u, cl_size),
