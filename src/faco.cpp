@@ -569,13 +569,8 @@ run_focused_aco(const ProblemInstance &problem,
                 auto start_node = get_rng().next_uint32(dimension);
 
                 ls_checklist.clear();
-                ls_checklist.push_back(start_node);
 
-                // We are counting edges (undirected) that are not present in
-                // the source_route. The factual # of new edges can be +1 as we
-                // skip the check for the closing edge (minor optimization).
                 uint32_t new_edges = 0;
-
                 uint32_t u = start_node;
                 ant.update(source_solution->route_, source_solution->cost_);
                 ant.visited_bitmask_.set_bit(u);
@@ -600,39 +595,6 @@ run_focused_aco(const ProblemInstance &problem,
 
                     u = v;
                 }
-  
-                //ant.visit(start_node);
-                // while (ant.visited_count_ < dimension) {
-                //     auto curr = ant.get_current_node();
-                //     auto next = select_next_node(pheromone, heuristic,
-                //                                  problem.get_nearest_neighbors(curr, cl_size),
-                //                                  nn_product_cache,
-                //                                  problem.get_backup_neighbors(curr, cl_size, bl_size),
-                //                                  ant);
-                //     ant.visit(next);
-
-                //     ++select_next_node_calls;
-
-                //     if (!source_solution->contains_edge(curr, next)) {
-                //         ++new_edges;
-                //         // The endpoint (tail) of the new edge should be
-                //         // checked by the local search
-                //         ls_checklist.push_back(next);
-                //     }
-
-                //     // If we have enough new edges, we try to copy "old" edges
-                //     // from the source_route.
-                //     if (new_edges >= target_new_edges) {
-                //         // Forward direction, start at { next, succ(next) }
-                //         auto it = source_solution->get_iterator(next);
-                //         while (ant.try_visit(it.goto_succ()) ) {
-                //         }
-                //         // Backward direction
-                //         it.goto_pred();  // Reverse .goto_succ() from above
-                //         while (ant.try_visit(it.goto_pred()) ) {
-                //         }
-                //     }
-                // }
 
                 if (use_ls) {
                     two_opt_nn(problem, ant.route_, ls_checklist, opt.ls_cand_list_size_);
@@ -657,14 +619,12 @@ run_focused_aco(const ProblemInstance &problem,
                     best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
 
                     //model.update_trail_limits(best_ant->cost_);
-                    if (iteration % 1000 == 0) {
-                        model.trail_limits_.min_ -= 0.005;
-                    }
                 }
-                // if (iteration % 1000 == 0) {
-                //     auto error = problem.calc_relative_error(best_ant->cost_);
-                //     best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
-                // }
+                if (iteration % 1000 == 0) {
+                    opt.gbest_as_source_prob_ += 0.1;
+                    auto error = problem.calc_relative_error(best_ant->cost_);
+                    best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
+                }
 
                 auto total_edges = (dimension - 1) * ants_count;
                 select_next_node_calls_trace.add(
