@@ -620,11 +620,6 @@ run_focused_aco(const ProblemInstance &problem,
 
                     //model.update_trail_limits(best_ant->cost_);
                 }
-                if (iteration % 1000 == 0) {
-                    opt.gbest_as_source_prob_ += 0.1;
-                    auto error = problem.calc_relative_error(best_ant->cost_);
-                    best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
-                }
 
                 auto total_edges = (dimension - 1) * ants_count;
                 select_next_node_calls_trace.add(
@@ -642,6 +637,11 @@ run_focused_aco(const ProblemInstance &problem,
 
             #pragma omp master
             {
+                if (iteration % 1000 == 0) {
+                    opt.gbest_as_source_prob_ += 0.1;
+                    auto error = problem.calc_relative_error(best_ant->cost_);
+                    best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
+                }
 
                 bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
                 auto &update_ant = use_best_ant ? *best_ant : *iteration_best;
