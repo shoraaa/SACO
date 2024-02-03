@@ -527,6 +527,7 @@ run_focused_aco(const ProblemInstance &problem,
     vector<double> sol_costs(ants_count);
 
     double  pher_deposition_time = 0;
+    double gbest_as_source_prob_ = opt.gbest_as_source_prob_;
     cerr << "trail min: " << model.trail_limits_.min_ << endl;
 
     #pragma omp parallel default(shared)
@@ -638,7 +639,7 @@ run_focused_aco(const ProblemInstance &problem,
             #pragma omp master
             {
                 if (iteration % 1000 == 0) {
-                    opt.gbest_as_source_prob_ += 0.1;
+                    gbest_as_source_prob_ += 0.1;
                     auto error = problem.calc_relative_error(best_ant->cost_);
                     best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
                 }
