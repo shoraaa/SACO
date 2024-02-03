@@ -658,7 +658,7 @@ run_focused_aco(const ProblemInstance &problem,
 
                     //model.update_trail_limits(best_ant->cost_);
                     if (iteration % 1000 == 0) {
-                        model.trail_limits_.min_ -= 0.001;
+                        model.trail_limits_.min_ -= 0.005;
                     }
                 }
                 // if (iteration % 1000 == 0) {
