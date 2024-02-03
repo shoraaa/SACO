@@ -580,7 +580,7 @@ run_focused_aco(const ProblemInstance &problem,
                     ant.visited_bitmask_.set_bit(u_next);
                     
                     auto nn = *problem.get_nearest_neighbors(u, cl_size).begin();
-                    bool use_nn = (get_rng().next_float() < 0.5) && !ant.is_visited(nn);
+                    bool use_nn = (get_rng().next_float() < 0.75) && !ant.is_visited(nn);
                     auto v = use_nn ? nn : select_next_node_(pheromone, heuristic,
                                                  problem.get_nearest_neighbors(u, cl_size),
                                                  nn_product_cache,
