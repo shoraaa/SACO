@@ -149,8 +149,7 @@ Limits calc_trail_limits_cl(uint32_t dimension,
                             double rho,
                             double solution_cost) {
     const auto tau_max = 1.0;
-    const auto avg = dimension / 2;
-    const auto tau_min = min(tau_max, tau_max / avg);
+    const auto tau_min = 0.25;
     // const auto avg = cand_list_size;  // This is far smaller than dimension/2
     // const auto p = pow(p_best, 1. / avg);
     // const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
@@ -657,7 +656,10 @@ run_focused_aco(const ProblemInstance &problem,
                     auto error = problem.calc_relative_error(best_ant->cost_);
                     best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
 
-                    model.update_trail_limits(best_ant->cost_);
+                    //model.update_trail_limits(best_ant->cost_);
+                    if (iteration % 1000 == 0) {
+                        model.trail_limits_.min_ -= 0.01;
+                    }
                 }
                 // if (iteration % 1000 == 0) {
                 //     auto error = problem.calc_relative_error(best_ant->cost_);
