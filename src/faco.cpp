@@ -621,7 +621,7 @@ run_focused_aco(const ProblemInstance &problem,
                     auto error = problem.calc_relative_error(best_ant->cost_);
                     best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
 
-                    //model.update_trail_limits(best_ant->cost_);
+                    model.update_trail_limits(best_ant->cost_);
                 }
 
                 auto total_edges = (dimension - 1) * ants_count;
