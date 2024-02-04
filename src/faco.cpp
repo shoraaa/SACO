@@ -301,23 +301,6 @@ uint32_t select_next_node_(const Pheromone_t &pheromone,
     return chosen_node;
 }
 
-
-
-void calc_cand_list_heuristic_cache(HeuristicData &heuristic,
-                                    uint32_t cl_size,
-                                    vector<double> &cache) {
-    const auto &problem = heuristic.problem_;
-    const auto dimension = problem.dimension_;
-    cache.resize(cl_size * dimension);
-    for (uint32_t node = 0 ; node < dimension ; ++node) {
-        auto cache_it = cache.begin() + node * cl_size;
-        for (auto &nn : problem.get_nearest_neighbors(node, cl_size)) {
-            auto value = heuristic.get(node, nn);
-            *cache_it++ = value;
-        }
-    }
-}
-
 void calc_cand_list_heuristic_cache(HeuristicData &heuristic,
                                     uint32_t cl_size,
                                     vector<double> &cache) {
