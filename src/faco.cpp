@@ -636,37 +636,31 @@ run_focused_aco(const ProblemInstance &problem,
                 // the source_route. The factual # of new edges can be +1 as we
                 // skip the check for the closing edge (minor optimization).
                 uint32_t new_edges = 0;
-
-                while (ant.visited_count_ < dimension) {
-                    auto curr = ant.get_current_node();
-                    auto next = select_next_node(pheromone, heuristic,
-                                                 problem.get_nearest_neighbors(curr, cl_size),
+                uint32_t u = start_node;
+                ant.update(source_solution->route_, source_solution->cost_);
+                ant.visited_bitmask_.set_bit(u);
+                while (new_edges <= target_new_edges) {
+                    auto u_next = ant.get_succ(u);
+                    ant.visited_bitmask_.set_bit(u_next);
+                    
+                    auto nn = *problem.get_nearest_neighbors(u, cl_size).begin();
+                    bool use_nn = (get_rng().next_float() < 0.5) && !ant.is_visited(nn);
+                    auto v = use_nn ? nn : select_next_node_(pheromone, heuristic,
+                                                 problem.get_nearest_neighbors(u, cl_size),
                                                  nn_product_cache,
-                                                 problem.get_backup_neighbors(curr, cl_size, bl_size),
-                                                 ant);
-                    ant.visit(next);
+                                                 problem.get_backup_neighbors(u, cl_size, bl_size),
+                                                 ant, u);
+                    ant.visited_bitmask_.set_bit(v);
+                    
+                    auto v_pred = ant.get_pred(v);
 
-                    ++select_next_node_calls;
+                    ant.relocate(u, v);
+                    ++new_edges;
+                    ls_checklist.push_back(u);
+                    ls_checklist.push_back(v);
+                    ls_checklist.push_back(v_pred);
 
-                    if (!source_solution->contains_edge(curr, next)) {
-                        ++new_edges;
-                        // The endpoint (tail) of the new edge should be
-                        // checked by the local search
-                        ls_checklist.push_back(next);
-                    }
-
-                    // If we have enough new edges, we try to copy "old" edges
-                    // from the source_route.
-                    if (new_edges >= target_new_edges) {
-                        // Forward direction, start at { next, succ(next) }
-                        auto it = source_solution->get_iterator(next);
-                        while (ant.try_visit(it.goto_succ()) ) {
-                        }
-                        // Backward direction
-                        it.goto_pred();  // Reverse .goto_succ() from above
-                        while (ant.try_visit(it.goto_pred()) ) {
-                        }
-                    }
+                    u = v;
                 }
                 if (use_ls) {
                     two_opt_nn(problem, ant.route_, ls_checklist, opt.ls_cand_list_size_);
