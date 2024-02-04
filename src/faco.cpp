@@ -355,7 +355,7 @@ public:
     }
 
     void evaporate_pheromone() {
-        get_pheromone().evaporate(1 - rho_, 0);//trail_limits_.min_, trail_limits_.min_ * rho_);
+        get_pheromone().evaporate(1 - rho_, trail_limits_.min_, 0.0)// trail_limits_.min_ * rho_);
     }
 
     decltype(auto) get_pheromone() {
