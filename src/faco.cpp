@@ -161,9 +161,10 @@ Limits calc_trail_limits_smooth(uint32_t dimension,
                             double rho,
                             double solution_cost) {
     const auto tau_max = 1.0;
-    const auto avg = cand_list_size;  // This is far smaller than dimension/2
-    const auto p = pow(p_best, 1. / avg);
-    const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
+    const auto tau_min = 0.5;
+    // const auto avg = cand_list_size;  // This is far smaller than dimension/2
+    // const auto p = pow(p_best, 1. / avg);
+    // const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
     return { tau_min, tau_max };
 }
 
@@ -755,8 +756,8 @@ run_rgaco(const ProblemInstance &problem,
             // seed (--seed X) then we get exactly the same results.
             #pragma omp for schedule(static, 1) reduction(+ : select_next_node_calls)
             for (uint32_t ant_idx = 0; ant_idx < ants.size(); ++ant_idx) {
-                uint32_t target_new_edges = opt.max_changes;
-                uint32_t min_new_edges = opt.min_changes;
+                uint32_t max_changes = opt.max_changes;
+                uint32_t min_changes = opt.min_changes;
 
                 auto &ant = ants[ant_idx];
                 ant.initialize(dimension);
@@ -771,10 +772,10 @@ run_rgaco(const ProblemInstance &problem,
                 ant.update(source_solution->route_, source_solution->cost_);
                 ant.visited_bitmask_.set_bit(u);
 
-                vector<uint32_t> changes(target_new_edges);
+                vector<uint32_t> changes(max_changes);
                 uint32_t best_changes_pos = -1;
                 double best_cost = numeric_limits<double>::max();
-                for (uint32_t changes_pos = 1; changes_pos <= target_new_edges; ++changes_pos) {
+                for (uint32_t changes_pos = 1; changes_pos <= max_changes; ++changes_pos) {
                     auto u_next = ant.get_succ(u);
                     ant.visited_bitmask_.set_bit(u_next);
                     
@@ -793,8 +794,8 @@ run_rgaco(const ProblemInstance &problem,
                     ant.relocate_rgaco(u, v, problem);
 
                     changes[changes_pos - 1] = v; 
-                    double cur_cost = ant.cost_;// * get_rng().next_float();
-                    if (changes_pos >= min_new_edges && cur_cost < best_cost) {
+                    double cur_cost = ant.cost_ * get_rng().next_float();
+                    if (changes_pos >= min_changes && cur_cost < best_cost) {
                         best_cost = cur_cost;
                         best_changes_pos = changes_pos;
                     }
