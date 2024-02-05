@@ -961,6 +961,13 @@ int main(int argc, char *argv[]) {
             Timer execution_timer;
             auto result = alg(problem, args, exlog);
 
+            assert(result.route_.size() == problem.dimension_);
+            assert(result.cost_ == problem.calculate_route_length(result.route_));
+            for (auto& u : result.route_) {
+                cerr << u << ' ';
+            }
+            cerr << '\n';
+
             exlog("execution time", execution_timer());
             exlog("finished_at", get_current_datetime_string("-", ":", "T", true));
             exlog("final cost", result->cost_);
