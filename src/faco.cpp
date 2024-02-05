@@ -744,7 +744,7 @@ run_rgaco(const ProblemInstance &problem,
             #pragma omp for schedule(static, 1) reduction(+ : select_next_node_calls)
             for (uint32_t ant_idx = 0; ant_idx < ants.size(); ++ant_idx) {
                 uint32_t target_new_edges = opt.min_new_edges_;
-                uint32_t min_new_edges = 4;
+                uint32_t min_new_edges = 8;
 
                 auto &ant = ants[ant_idx];
                 ant.initialize(dimension);
@@ -797,7 +797,6 @@ run_rgaco(const ProblemInstance &problem,
 
                 // simulate the best solution
                 if (best_changes_pos == -1) {
-                    exit(1);
                     throw invalid_argument("best changes pos not found");
                     abort();
                 }
@@ -821,7 +820,6 @@ run_rgaco(const ProblemInstance &problem,
 
                 ant.cost_ = problem.calculate_route_length(ant.route_);
                 sol_costs[ant_idx] = ant.cost_;
-                cerr << best_changes_pos << '\n';
                 ant.changes_count = best_changes_pos + 1;
             }
 
@@ -840,7 +838,7 @@ run_rgaco(const ProblemInstance &problem,
 
                     auto error = problem.calc_relative_error(best_ant->cost_);
                     best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
-                    cout << best_ant->changes_count << '\n';
+                    cout << iteration_best->changes_count << '\n';
 
                     model.update_trail_limits(best_ant->cost_);
                 }
