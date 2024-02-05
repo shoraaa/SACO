@@ -778,7 +778,7 @@ run_rgaco(const ProblemInstance &problem,
                 vector<uint32_t> changes(target_new_edges + 1);
                 uint32_t best_changes_pos = -1;
                 double best_cost = numeric_limits<double>::max();
-                while (changes_pos <= target_new_edges) {
+                while (changes_pos < target_new_edges) {
                     auto u_next = ant.get_succ(u);
                     ant.visited_bitmask_.set_bit(u_next);
                     
@@ -798,7 +798,7 @@ run_rgaco(const ProblemInstance &problem,
 
                     changes[changes_pos] = v; 
                     double cur_cost = ant.cost_;// * get_rng().next_float();
-                    if (changes_pos > min_new_edges && cur_cost < best_cost) {
+                    if (changes_pos >= min_new_edges && cur_cost < best_cost) {
                         best_cost = cur_cost;
                         best_changes_pos = changes_pos;
                     }
@@ -813,8 +813,6 @@ run_rgaco(const ProblemInstance &problem,
                     cout << "HOW tf this happned " << changes_pos << ' ' << ant.cost_ << '\n';
                     abort();
                 }
-
-                best_changes_pos = 6;
 
                 u = start_node;
                 ant.update(source_solution->route_, source_solution->cost_);
