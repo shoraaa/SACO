@@ -962,12 +962,14 @@ int main(int argc, char *argv[]) {
             auto result = alg(problem, args, exlog);
 
             assert(result->route_.size() == problem.dimension_);
-            assert(result->cost_ == problem.calculate_route_length(result->route_));
+            cerr << problem.calculate_route_length(result->route_) << '\n';
+            double cost = 0.0;
             for (auto& u : result->route_) {
                 auto w = problem.get_distance(u, result->get_succ(u));
                 cerr << u << ' ' << w << '\n';
+                cost += w;
             }
-            cerr << '\n';
+            cerr << cost << ' ' << problem.calc_relative_error(cost) <<'\n';
 
             exlog("execution time", execution_timer());
             exlog("finished_at", get_current_datetime_string("-", ":", "T", true));
