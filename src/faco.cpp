@@ -155,13 +155,14 @@ Limits calc_trail_limits_cl(uint32_t /*dimension*/,
     return { tau_min, tau_max };
 }
 
-Limits calc_trail_limits_smooth(uint32_t /*dimension*/,
+Limits calc_trail_limits_smooth(uint32_t dimension,
                             uint32_t cand_list_size,
                             double p_best,
                             double rho,
                             double solution_cost) {
     const auto tau_max = 1.0;
-    const auto tau_min = min(tau_max, 0.1);
+    const auto avg = cand_list_size;  // This is far smaller than dimension/2
+    const auto tau_min = min(tau_max, tau_max / cand_list_size);
     return { tau_min, tau_max };
 }
 
@@ -697,9 +698,8 @@ run_rgaco(const ProblemInstance &problem,
 
     // Probabilistic model based on pheromone trails:
     CandListModel model(problem, opt);
-    // If the LS is on, the differences between pheromone trails should be
-    // smaller -- we use calc_trail_limits_cl instead of calc_trail_limits
-    model.calc_trail_limits_ = !use_ls ? calc_trail_limits : calc_trail_limits_cl;
+
+    model.calc_trail_limits_ = calc_trail_limits_smooth;
     model.init(initial_cost);
     auto &pheromone = model.get_pheromone();
     pheromone.set_all_trails(model.trail_limits_.max_);
