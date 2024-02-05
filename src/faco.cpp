@@ -757,15 +757,15 @@ run_rgaco(const ProblemInstance &problem,
                 // We are counting edges (undirected) that are not present in
                 // the source_route. The factual # of new edges can be +1 as we
                 // skip the check for the closing edge (minor optimization).
-                uint32_t new_edges = 0;
+                uint32_t changes_pos = 0;
                 uint32_t u = start_node;
                 ant.update(source_solution->route_, source_solution->cost_);
                 ant.visited_bitmask_.set_bit(u);
 
                 vector<uint32_t> changes(target_new_edges);
-                uint32_t changes_pos = 0, best_changes_pos = -1;
+                uint32_t best_changes_pos = -1;
                 double best_cost = numeric_limits<double>::max();
-                while (new_edges <= target_new_edges) {
+                while (changes_pos <= target_new_edges) {
                     auto u_next = ant.get_succ(u);
                     ant.visited_bitmask_.set_bit(u_next);
                     

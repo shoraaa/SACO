@@ -77,7 +77,7 @@ struct Solution {
     void swap_with_next(uint32_t i, const ProblemInstance& problem) {
         // swap route[i] with route[i + 1]
         assert(i + 1 < route_.size());
-        uint32_t u = route_[i], v = route[i + 1];
+        uint32_t u = route_[i], v = route_[i + 1];
         cost_ -= problem.get_distance(get_pred(u), u) + problem.get_distance(v, get_succ(v));
         std::swap(node_indices_[u], node_indices_[v]);
         std::swap(route_[i], route_[i + 1]);
