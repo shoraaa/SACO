@@ -797,7 +797,7 @@ run_rgaco(const ProblemInstance &problem,
 
                 // simulate the best solution
                 if (best_changes_pos == -1) {
-                    throw invalid_argument("best changes pos not found");
+                    cout << "HOW tf this happned " << changes_pos << ' ' << ant.cost_ << '\n';
                     abort();
                 }
 
