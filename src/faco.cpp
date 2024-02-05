@@ -783,7 +783,7 @@ run_rgaco(const ProblemInstance &problem,
                     auto v_pred = ant.get_pred(v);
 
                     ant.relocate_rgaco(u, v, problem);
-                    ++new_edges;
+                    ++changes_pos;
 
                     if (ant.cost_ < best_cost) {
                         best_changes_pos = changes_pos;
