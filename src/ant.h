@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utils.h"
+#include "problem_instance.h"
 
 
 struct RouteIterator {
@@ -51,25 +52,25 @@ struct Solution {
         }
     }
 
-    void swap_(uint32_t i, uint32_t j) {
+    void swap_with_next(uint32_t i, ProblemInstance& problem) {
+        // swap route[i] with route[i + 1]
+        uint32_t u = route[i], v = get_succ(u);
+        cost_ -= problem.get_distance(get_pred(u), u) + problem.get_distance(v, get_succ(v));
         std::swap(node_indices_[route_[i]], node_indices_[route_[j]]);
         std::swap(route_[i], route_[j]);
+        cost_ += problem.get_distance(get_pred(u), u) + problem.get_distance(v, get_succ(v));
     }
 
-    void relocate(uint32_t u, uint32_t v) {
+    void relocate(uint32_t u, uint32_t v, ProblemInstance& problem) {
         // place v after u
         uint32_t i = node_indices_[u], j = node_indices_[v];
-        if (j < i) {
-            swap_(i, j);
-            while (j < i - 1) {
-                swap_(j, j + 1);
-                ++j;
-            }
-        } else {
-            while (j > i + 1) {
-                swap_(j, j - 1);
-                --j;
-            }
+        while (j < i) {
+            swap_with_next(j, problem);
+            ++j;
+        }
+        while (j > i + 1) {
+            swap_with_next(j - 1, problem);
+            --j;
         }
     }
 
@@ -170,3 +171,12 @@ struct Ant : public Solution {
         return unvisited_;
     }
 };
+
+
+struct DoubleLinkedListSolution {
+
+};
+
+struct DoubleLinkedListAnt {
+
+}

@@ -450,141 +450,9 @@ par_build_initial_routes(const ProblemInstance &problem,
     return routes;
 }
 
-/**
- * Runs the MMAS for the specified number of iterations.
- * Returns the best solution (ant).
- */
-template<typename Model_t, typename ComputationsLog_t>
-std::unique_ptr<Solution> 
-run_mmas(const ProblemInstance &problem,
-             const ProgramOptions &opt,
-             ComputationsLog_t &comp_log) {
-
-    const auto dimension  = problem.dimension_;
-    const auto cl_size    = opt.cand_list_size_;
-    const auto bl_size    = opt.backup_list_size_;
-    const auto ants_count = opt.ants_count_;
-    const auto iterations = opt.iterations_;
-    const auto use_ls     = opt.local_search_ != 0;
-
-    const auto start_sol = build_initial_route(problem);
-    const auto initial_cost = start_sol.second;
-    comp_log("initial sol cost", initial_cost);
-
-    Model_t model(problem, opt);
-    model.init(initial_cost);
-    auto &pheromone = model.get_pheromone();
-
-    HeuristicData heuristic(problem, opt.beta_);
-
-    vector<double> cl_heuristic_cache;
-    calc_cand_list_heuristic_cache(heuristic, cl_size, cl_heuristic_cache);
-
-    vector<double> nn_product_cache(dimension * cl_size);
-
-    Ant best_ant;
-    best_ant.route_ = start_sol.first;
-    best_ant.cost_ = initial_cost;
-
-    vector<Ant> ants(ants_count);
-    Ant *iteration_best = nullptr;
-
-    // The following are mainly for raporting purposes
-    Trace<ComputationsLog_t, SolutionCost> best_cost_trace(comp_log,
-                                                           "best sol cost", iterations, 1, true, 0.1);
-    Trace<ComputationsLog_t, double> mean_cost_trace(comp_log, "sol cost mean", iterations, 20);
-    Trace<ComputationsLog_t, double> stdev_cost_trace(comp_log, "sol cost stdev", iterations, 20);
-    Timer main_timer;
-
-    vector<double> sol_costs(ants_count);
-
-    #pragma omp parallel default(shared)
-    {
-        for (int32_t iteration = 0 ; iteration < iterations ; ++iteration) {
-            #pragma omp barrier
-            // Load pheromone * heuristic for each edge connecting nearest
-            // neighbors (up to cl_size)
-            #pragma omp for schedule(static)
-            for (uint32_t node = 0 ; node < dimension ; ++node) {
-                auto cache_it = nn_product_cache.begin() + node * cl_size;
-                auto heuristic_it = cl_heuristic_cache.begin() + node * cl_size;
-                for (auto &nn : problem.get_nearest_neighbors(node, cl_size)) {
-                    *cache_it++ = *heuristic_it++ * pheromone.get(node, nn);
-                }
-            }
-
-            // Changing schedule from "static" to "dynamic" can speed up
-            // computations a bit, however it introduces non-determinism due to
-            // threads scheduling. With "static" the computations always follow
-            // the same path -- i.e. if we run the program with the same PRNG
-            // seed (--seed X) then we get exactly the same results.
-            #pragma omp for schedule(static, 1)
-            for (uint32_t ant_idx = 0; ant_idx < ants.size(); ++ant_idx) {
-                auto &ant = ants[ant_idx];
-                ant.initialize(dimension);
-
-                auto start_node = get_rng().next_uint32(dimension);
-                ant.visit(start_node);
-
-                while (ant.visited_count_ < dimension) {
-                    auto curr = ant.get_current_node();
-                    auto next = select_next_node(pheromone, heuristic,
-                                                 problem.get_nearest_neighbors(curr, cl_size),
-                                                 nn_product_cache,
-                                                 problem.get_backup_neighbors(curr, cl_size, bl_size),
-                                                 ant);
-                    ant.visit(next);
-                }
-                if (use_ls) {
-                    two_opt_nn(problem, ant.route_, true, opt.ls_cand_list_size_);
-                }
-
-                ant.cost_ = problem.calculate_route_length(ant.route_);
-                sol_costs[ant_idx] = ant.cost_;
-            }
-
-            #pragma omp master
-            {
-                iteration_best = &ants.front();
-                for (auto &ant : ants) {
-                    if (ant.cost_ < iteration_best->cost_) {
-                        iteration_best = &ant;
-                    }
-                }
-
-                mean_cost_trace.add(round(sample_mean(sol_costs), 1), iteration);
-                stdev_cost_trace.add(round(sample_stdev(sol_costs), 1), iteration);
-
-                if (iteration_best->cost_ < best_ant.cost_) {
-                    best_ant = *iteration_best;
-
-                    model.update_trail_limits(best_ant.cost_);
-
-                    auto error = problem.calc_relative_error(best_ant.cost_);
-                    best_cost_trace.add({ best_ant.cost_, error }, iteration, main_timer());
-                }
-            }
-
-            // Synchronize threads before pheromone update
-            #pragma omp barrier
-
-            model.evaporate_pheromone();
-
-            #pragma omp master
-            {
-                bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
-                auto &update_ant = use_best_ant ? best_ant : *iteration_best;
-
-                model.deposit_pheromone(update_ant);
-            }
-        }
-    }
-    return make_unique<Solution>(best_ant.route_, best_ant.cost_);
-}
-
 template<typename ComputationsLog_t>
 std::unique_ptr<Solution> 
-run_focused_aco(const ProblemInstance &problem,
+run_facor(const ProblemInstance &problem,
                 const ProgramOptions &opt,
                 ComputationsLog_t &comp_log) {
 
@@ -605,13 +473,11 @@ run_focused_aco(const ProblemInstance &problem,
     for (size_t i = 0; i < start_sol_count; ++i) {
         start_costs[i] = problem.calculate_route_length(start_routes[i]);
     }
-    comp_log("initial solutions build time", start_sol_timer.get_elapsed_seconds());
-
     auto smallest_pos = std::distance(begin(start_costs),
                                       min_element(begin(start_costs), end(start_costs)));
     auto initial_cost = start_costs[smallest_pos];
     const auto &start_route = start_routes[smallest_pos];
-    comp_log("initial sol cost", initial_cost);
+    comp_log("Initial tour cost:", initial_cost);
 
     HeuristicData heuristic(problem, opt.beta_);
     vector<double> cl_heuristic_cache;
@@ -645,12 +511,6 @@ run_focused_aco(const ProblemInstance &problem,
 
     // The following are mainly for raporting purposes
     int64_t select_next_node_calls = 0;
-    Trace<ComputationsLog_t, SolutionCost> best_cost_trace(comp_log,
-                                                           "best sol cost", iterations, 1, true, 1.);
-    Trace<ComputationsLog_t, double> select_next_node_calls_trace(comp_log,
-                                                                  "mean percent of select next node calls", iterations, 20);
-    Trace<ComputationsLog_t, double> mean_cost_trace(comp_log, "sol cost mean", iterations, 20);
-    Trace<ComputationsLog_t, double> stdev_cost_trace(comp_log, "sol cost stdev", iterations, 20);
     Timer main_timer;
 
     vector<double> sol_costs(ants_count);
@@ -754,14 +614,6 @@ run_focused_aco(const ProblemInstance &problem,
 
                     model.update_trail_limits(best_ant->cost_);
                 }
-
-                auto total_edges = (dimension - 1) * ants_count;
-                select_next_node_calls_trace.add(
-                        round(100.0 * static_cast<double>(select_next_node_calls) / total_edges, 2),
-                        iteration, main_timer());
-
-                mean_cost_trace.add(round(sample_mean(sol_costs), 1), iteration);
-                stdev_cost_trace.add(round(sample_stdev(sol_costs), 1), iteration);
             }
 
             // Synchronize threads before pheromone update
@@ -790,6 +642,205 @@ run_focused_aco(const ProblemInstance &problem,
 
     return unique_ptr<Solution>(dynamic_cast<Solution*>(best_ant.release()));
 }
+
+template<typename ComputationsLog_t>
+std::unique_ptr<Solution> 
+run_rgaco(const ProblemInstance &problem,
+                const ProgramOptions &opt,
+                ComputationsLog_t &comp_log) {
+
+    const auto dimension  = problem.dimension_;  
+    const auto cl_size    = opt.cand_list_size_;
+    const auto bl_size    = opt.backup_list_size_;
+    const auto ants_count = opt.ants_count_;
+    const auto iterations = opt.iterations_;
+    const auto use_ls     = opt.local_search_ != 0;
+
+    Timer start_sol_timer;
+    const auto start_routes = par_build_initial_routes(problem, use_ls);
+    auto start_sol_count = start_routes.size();
+    std::vector<double> start_costs(start_sol_count);
+
+    #pragma omp parallel default(none) shared(start_sol_count, problem, start_costs, start_routes)
+    #pragma omp for
+    for (size_t i = 0; i < start_sol_count; ++i) {
+        start_costs[i] = problem.calculate_route_length(start_routes[i]);
+    }
+    auto smallest_pos = std::distance(begin(start_costs),
+                                      min_element(begin(start_costs), end(start_costs)));
+    auto initial_cost = start_costs[smallest_pos];
+    const auto &start_route = start_routes[smallest_pos];
+    comp_log("Initial tour cost:", initial_cost);
+
+    HeuristicData heuristic(problem, opt.beta_);
+    vector<double> cl_heuristic_cache;
+
+    cl_heuristic_cache.resize(cl_size * dimension);
+    for (uint32_t node = 0 ; node < dimension ; ++node) {
+        auto cache_it = cl_heuristic_cache.begin() + node * cl_size;
+
+        for (auto &nn : problem.get_nearest_neighbors(node, cl_size)) {
+            *cache_it++ = heuristic.get(node, nn);
+        }
+    }
+
+    // Probabilistic model based on pheromone trails:
+    CandListModel model(problem, opt);
+    // If the LS is on, the differences between pheromone trails should be
+    // smaller -- we use calc_trail_limits_cl instead of calc_trail_limits
+    model.calc_trail_limits_ = !use_ls ? calc_trail_limits : calc_trail_limits_cl;
+    model.init(initial_cost);
+    auto &pheromone = model.get_pheromone();
+    pheromone.set_all_trails(model.trail_limits_.max_);
+
+    vector<double> nn_product_cache(dimension * cl_size);
+
+    auto best_ant = make_unique<Ant>(start_route, initial_cost);
+
+    vector<Ant> ants(ants_count);
+    Ant *iteration_best = nullptr;
+
+    auto source_solution = make_unique<Solution>(start_route, best_ant->cost_);
+
+    // The following are mainly for raporting purposes
+    int64_t select_next_node_calls = 0;
+    Timer main_timer;
+
+    vector<double> sol_costs(ants_count);
+
+    double  pher_deposition_time = 0;
+
+    #pragma omp parallel default(shared)
+    {
+        // Endpoints of new edges (not present in source_route) are inserted
+        // into ls_checklist and later used to guide local search
+        vector<uint32_t> ls_checklist;
+        ls_checklist.reserve(dimension);
+
+        for (int32_t iteration = 0 ; iteration < iterations ; ++iteration) {
+            #pragma omp barrier
+
+            // Load pheromone * heuristic for each edge connecting nearest
+            // neighbors (up to cl_size)
+            #pragma omp for schedule(static)
+            for (uint32_t node = 0 ; node < dimension ; ++node) {
+                auto cache_it = nn_product_cache.begin() + node * cl_size;
+                auto heuristic_it = cl_heuristic_cache.begin() + node * cl_size;
+                for (auto &nn : problem.get_nearest_neighbors(node, cl_size)) {
+                    *cache_it++ = *heuristic_it++ * pheromone.get(node, nn);
+                }
+            }
+
+            #pragma omp master
+            select_next_node_calls = 0;
+
+            // Changing schedule from "static" to "dynamic" can speed up
+            // computations a bit, however it introduces non-determinism due to
+            // threads scheduling. With "static" the computations always follow
+            // the same path -- i.e. if we run the program with the same PRNG
+            // seed (--seed X) then we get exactly the same results.
+            #pragma omp for schedule(static, 1) reduction(+ : select_next_node_calls)
+            for (uint32_t ant_idx = 0; ant_idx < ants.size(); ++ant_idx) {
+                uint32_t target_new_edges = opt.min_new_edges_;
+
+                auto &ant = ants[ant_idx];
+                ant.initialize(dimension);
+
+                auto start_node = get_rng().next_uint32(dimension);
+                ant.visit(start_node);
+
+                ls_checklist.clear();
+                ls_checklist.push_back(start_node);
+
+                // We are counting edges (undirected) that are not present in
+                // the source_route. The factual # of new edges can be +1 as we
+                // skip the check for the closing edge (minor optimization).
+                uint32_t new_edges = 0;
+                uint32_t u = start_node;
+                ant.update(source_solution->route_, source_solution->cost_);
+                ant.visited_bitmask_.set_bit(u);
+
+                vector<uint32_t> changes(target_new_edges);
+                uint32_t changes_pos = 0;
+                while (new_edges <= target_new_edges) {
+                    auto u_next = ant.get_succ(u);
+                    ant.visited_bitmask_.set_bit(u_next);
+                    
+                    auto nn_list = problem.get_nearest_neighbors(u, cl_size);
+                    auto nn = *nn_list.begin();
+                    bool use_nn = 0; //(get_rng().next_float() < 0.5) && !ant.is_visited(nn);
+                    auto v = use_nn ? nn : select_next_node_(pheromone, heuristic,
+                                                 nn_list,
+                                                 nn_product_cache,
+                                                 problem.get_backup_neighbors(u, cl_size, bl_size),
+                                                 ant, u);
+                    
+                    changes[changes_pos++] = v;
+                    ant.visited_bitmask_.set_bit(v);
+                    
+                    auto v_pred = ant.get_pred(v);
+
+                    ant.relocate(u, v, problem);
+                    ++new_edges;
+                    ls_checklist.push_back(u);
+                    ls_checklist.push_back(v);
+                    ls_checklist.push_back(v_pred);
+
+                    u = v;
+                }
+                if (use_ls) {
+                    two_opt_nn(problem, ant.route_, ls_checklist, opt.ls_cand_list_size_);
+                }
+
+                assert(ant.cost_ == problem.calculate_route_length(ant.route_));
+                // ant.cost_ = problem.calculate_route_length(ant.route_);
+                sol_costs[ant_idx] = ant.cost_;
+            }
+
+            #pragma omp master
+            {
+                iteration_best = &ants.front();
+                for (auto &ant : ants) {
+                    if (ant.cost_ < iteration_best->cost_) {
+                        iteration_best = &ant;
+                    }
+                }
+                if (iteration_best->cost_ < best_ant->cost_) {
+                    best_ant->update(iteration_best->route_, iteration_best->cost_);
+
+                    auto error = problem.calc_relative_error(best_ant->cost_);
+                    best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
+
+                    model.update_trail_limits(best_ant->cost_);
+                }
+            }
+
+            // Synchronize threads before pheromone update
+            #pragma omp barrier
+
+            model.evaporate_pheromone();
+
+            #pragma omp master
+            {
+                bool use_best_ant = (get_rng().next_float() < opt.gbest_as_source_prob_);
+                auto &update_ant = use_best_ant ? *best_ant : *iteration_best;
+
+                double start = omp_get_wtime();
+
+                model.deposit_pheromone(update_ant);
+
+                pher_deposition_time += omp_get_wtime() - start;
+
+                // Increase pheromone values on the edges of the new
+                // source_solution
+                source_solution->update(update_ant.route_, update_ant.cost_);
+            }
+        }
+    }
+
+    return unique_ptr<Solution>(dynamic_cast<Solution*>(best_ant.release()));
+}
+
 
 
 std::string get_results_filename(const ProblemInstance &problem,
@@ -855,20 +906,21 @@ int main(int argc, char *argv[]) {
         exp_log("nn and backup lists calc time", nn_lists_timer());
 
         aco_fn alg = nullptr; 
-        if (args.algorithm_ == "faco") {
-            alg = run_focused_aco;
+        if (args.algorithm_ == "rgaco") {
+            alg = run_rgaco;
 
             if (args.ants_count_ == 0) {
                 auto r = 4 * sqrt(problem.dimension_);
                 args.ants_count_ = static_cast<uint32_t>(lround(r / 64) * 64);
             }
-        } else if (args.algorithm_ == "mmas") {
-            alg = run_mmas<CandListModel>;
+        } else if (args.algorithm_ == "facor") {
+            alg = run_facor;
 
             if (args.ants_count_ == 0) {
-                args.ants_count_ = problem.dimension_;
+                auto r = 4 * sqrt(problem.dimension_);
+                args.ants_count_ = static_cast<uint32_t>(lround(r / 64) * 64);
             }
-        }
+        } 
 
         dump(args, experiment_record["args"]);
         experiment_record["executions"] = json::array();
