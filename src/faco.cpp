@@ -767,18 +767,14 @@ run_rgaco(const ProblemInstance &problem,
                 ls_checklist.clear();
                 ls_checklist.push_back(start_node);
 
-                // We are counting edges (undirected) that are not present in
-                // the source_route. The factual # of new edges can be +1 as we
-                // skip the check for the closing edge (minor optimization).
-                uint32_t changes_pos = 0;
                 uint32_t u = start_node;
                 ant.update(source_solution->route_, source_solution->cost_);
                 ant.visited_bitmask_.set_bit(u);
 
-                vector<uint32_t> changes(target_new_edges + 1);
+                vector<uint32_t> changes(target_new_edges);
                 uint32_t best_changes_pos = -1;
                 double best_cost = numeric_limits<double>::max();
-                while (changes_pos < target_new_edges) {
+                for (uint32_t changes_pos = 1; changes_pos <= target_new_edges; ++changes_pos) {
                     auto u_next = ant.get_succ(u);
                     ant.visited_bitmask_.set_bit(u_next);
                     
@@ -796,28 +792,26 @@ run_rgaco(const ProblemInstance &problem,
 
                     ant.relocate_rgaco(u, v, problem);
 
-                    changes[changes_pos] = v; 
+                    changes[changes_pos - 1] = v; 
                     double cur_cost = ant.cost_;// * get_rng().next_float();
                     if (changes_pos >= min_new_edges && cur_cost < best_cost) {
                         best_cost = cur_cost;
                         best_changes_pos = changes_pos;
                     }
 
-                    ++changes_pos;
-
                     u = v;
                 }
 
                 // simulate the best solution
                 if (best_changes_pos == -1) {
-                    cout << "HOW tf this happned " << changes_pos << ' ' << ant.cost_ << '\n';
+                    cout << "HOW tf this happned" << '\n';
                     abort();
                 }
 
                 u = start_node;
                 ant.update(source_solution->route_, source_solution->cost_);
-                for (size_t i = 0; i <= best_changes_pos; ++i) {
-                    auto v = changes[i];
+                for (size_t i = 1; i <= best_changes_pos; ++i) {
+                    auto v = changes[i - 1];
                     auto v_pred = ant.get_pred(v);
 
                     ant.relocate_rgaco(u, v, problem);
