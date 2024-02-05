@@ -704,7 +704,7 @@ run_rgaco(const ProblemInstance &problem,
     model.init(initial_cost);
     auto &pheromone = model.get_pheromone();
     pheromone.set_all_trails(model.trail_limits_.max_);
-    cout << "Trail min: " << model.trail_limits_.max_ << endl;
+    cout << "Trail min: " << model.trail_limits_.min_ << endl;
 
     vector<double> nn_product_cache(dimension * cl_size);
 
@@ -797,7 +797,7 @@ run_rgaco(const ProblemInstance &problem,
                     ant.relocate_rgaco(u, v, problem);
 
                     changes[changes_pos] = v; 
-                    double cur_cost = ant.cost_ * get_rng().next_float();
+                    double cur_cost = ant.cost_;// * get_rng().next_float();
                     if (changes_pos > min_new_edges && cur_cost < best_cost) {
                         best_cost = cur_cost;
                         best_changes_pos = changes_pos;
