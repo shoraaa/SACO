@@ -54,9 +54,9 @@ struct Solution {
 
     void swap_with_next(uint32_t i, ProblemInstance& problem) {
         // swap route[i] with route[i + 1]
-        uint32_t u = route[i], v = get_succ(u);
+        uint32_t u = route_[i], v = get_succ(u);
         cost_ -= problem.get_distance(get_pred(u), u) + problem.get_distance(v, get_succ(v));
-        std::swap(node_indices_[route_[i]], node_indices_[route_[j]]);
+        std::swap(node_indices_[u], node_indices_[v]);
         std::swap(route_[i], route_[j]);
         cost_ += problem.get_distance(get_pred(u), u) + problem.get_distance(v, get_succ(v));
     }
@@ -179,4 +179,4 @@ struct DoubleLinkedListSolution {
 
 struct DoubleLinkedListAnt {
 
-}
+};
