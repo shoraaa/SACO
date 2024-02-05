@@ -963,7 +963,7 @@ int main(int argc, char *argv[]) {
 
             assert(result->route_.size() == problem.dimension_);
             cerr << result->cost_ << ' ' << problem.calculate_route_length(result->route_) << '\n';
-            cerr << result->cost_ << ' ' << reuslt->route_.size() << '\n';
+            cerr << result->cost_ << ' ' << result->route_.size() << '\n';
             double cost = 0.0;
             for (auto& u : result->route_) {
                 auto w = problem.get_distance(u, result->get_succ(u));
