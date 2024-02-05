@@ -795,18 +795,18 @@ run_rgaco(const ProblemInstance &problem,
                 }
 
                 // simulate the best solution
-                u = start_node;
-                ant.update(source_solution->route_, source_solution->cost_);
-                for (size_t i = 0; i <= best_changes_pos; ++i) {
-                    auto v = changes[i];
-                    auto v_pred = ant.get_pred(v);
+                // u = start_node;
+                // ant.update(source_solution->route_, source_solution->cost_);
+                // for (size_t i = 0; i <= best_changes_pos; ++i) {
+                //     auto v = changes[i];
+                //     auto v_pred = ant.get_pred(v);
 
-                    ant.relocate_rgaco(u, v, problem);
-                    ls_checklist.push_back(u);
-                    ls_checklist.push_back(v);
-                    ls_checklist.push_back(v_pred);
-                    u = v;
-                }
+                //     ant.relocate_rgaco(u, v, problem);
+                //     ls_checklist.push_back(u);
+                //     ls_checklist.push_back(v);
+                //     ls_checklist.push_back(v_pred);
+                //     u = v;
+                // }
 
                 if (use_ls) {
                     two_opt_nn(problem, ant.route_, ls_checklist, opt.ls_cand_list_size_);
