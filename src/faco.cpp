@@ -965,7 +965,7 @@ int main(int argc, char *argv[]) {
             assert(result->cost_ == problem.calculate_route_length(result->route_));
             for (auto& u : result->route_) {
                 auto w = problem.get_distance(u, result->get_succ(u));
-                cerr << u << ' ' w << '\n';
+                cerr << u << ' ' << w << '\n';
             }
             cerr << '\n';
 
