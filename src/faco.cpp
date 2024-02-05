@@ -814,7 +814,7 @@ run_rgaco(const ProblemInstance &problem,
                     abort();
                 }
 
-                // best_changes_pos = target_new_edges;
+                best_changes_pos = 6;
 
                 u = start_node;
                 ant.update(source_solution->route_, source_solution->cost_);
