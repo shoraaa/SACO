@@ -762,7 +762,7 @@ run_rgaco(const ProblemInstance &problem,
                 ant.update(source_solution->route_, source_solution->cost_);
                 ant.visited_bitmask_.set_bit(u);
 
-                vector<uint32_t> changes(target_new_edges);
+                vector<uint32_t> changes(target_new_edges + 1);
                 uint32_t best_changes_pos = -1;
                 double best_cost = numeric_limits<double>::max();
                 while (changes_pos <= target_new_edges) {
@@ -783,6 +783,7 @@ run_rgaco(const ProblemInstance &problem,
 
                     ant.relocate_rgaco(u, v, problem);
 
+                    changes[changes_pos] = v;
                     if (ant.cost_ < best_cost) {
                         best_cost = ant.cost_;
                         best_changes_pos = changes_pos;
