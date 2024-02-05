@@ -813,8 +813,7 @@ run_rgaco(const ProblemInstance &problem,
                     two_opt_nn(problem, ant.route_, ls_checklist, opt.ls_cand_list_size_);
                 }
 
-                ant.validate(problem);
-                // ant.cost_ = problem.calculate_route_length(ant.route_);
+                ant.cost_ = problem.calculate_route_length(ant.route_);
                 sol_costs[ant_idx] = ant.cost_;
             }
 
@@ -960,16 +959,6 @@ int main(int argc, char *argv[]) {
 
             Timer execution_timer;
             auto result = alg(problem, args, exlog);
-
-            assert(result->route_.size() == problem.dimension_);
-            assert(0);
-            double cost = 0.0;
-            for (auto& u : result->route_) {
-                auto w = problem.get_distance(u, result->get_succ(u));
-                cerr << u << ' ' << w << '\n';
-                cost += w;
-            }
-            cerr << cost << ' ' << problem.calc_relative_error(cost) <<'\n';
 
             exlog("execution time", execution_timer());
             exlog("finished_at", get_current_datetime_string("-", ":", "T", true));
