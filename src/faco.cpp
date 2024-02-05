@@ -777,19 +777,15 @@ run_rgaco(const ProblemInstance &problem,
                                                  nn_product_cache,
                                                  problem.get_backup_neighbors(u, cl_size, bl_size),
                                                  ant, u);
-                    
                     ant.visited_bitmask_.set_bit(v);
                     
                     auto v_pred = ant.get_pred(v);
 
                     ant.relocate_rgaco(u, v, problem);
                     ++changes_pos;
-
-                    if (ant.cost_ < best_cost) {
-                        best_changes_pos = changes_pos;
-                        best_cost = ant.cost_;
-                    }
-                    changes[changes_pos++] = v;
+                    ls_checklist.push_back(u);
+                    ls_checklist.push_back(v);
+                    ls_checklist.push_back(v_pred);
 
                     u = v;
                 }
