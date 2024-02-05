@@ -831,7 +831,7 @@ run_rgaco(const ProblemInstance &problem,
                 if (iteration_best->cost_ < best_ant->cost_) {
                     best_ant->update(iteration_best->route_, iteration_best->cost_);
 
-                    assert(problem.calculate_route_length(iteration_best->route_) == iteration_best->cost_)
+                    assert(problem.calculate_route_length(iteration_best->route_) == iteration_best->cost_);
                     assert(iteration_best->route_.size() == dimension);
 
                     auto error = problem.calc_relative_error(best_ant->cost_);
