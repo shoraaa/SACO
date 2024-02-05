@@ -946,7 +946,7 @@ run_rgaco(const ProblemInstance &problem,
 
     // The following are mainly for raporting purposes
     int64_t select_next_node_calls = 0;
-    Trace<ComputationsLog_t, SolutionCost> best_cost_trace(comp_log, "Solution cost", iterations, 1, true, 60);
+    Trace<ComputationsLog_t, SolutionCost> best_cost_trace(comp_log, "Solution cost", iterations, 1, true, 1);
     Timer main_timer;
 
     vector<double> sol_costs(ants_count);
@@ -1004,12 +1004,12 @@ run_rgaco(const ProblemInstance &problem,
                 uint32_t best_changes_pos = -1;
                 double best_cost = numeric_limits<double>::max();
                 for (uint32_t changes_pos = 1; changes_pos <= max_changes; ++changes_pos) {
-                    //auto u_next = ant.get_succ(u);
-                    //ant.visited_bitmask_.set_bit(u_next);
+                    auto u_next = ant.get_succ(u);
+                    ant.visited_bitmask_.set_bit(u_next);
                     
                     auto nn_list = problem.get_nearest_neighbors(u, cl_size);
                     auto nn = *nn_list.begin();
-                    bool use_nn = get_rng().next_float() < 0.5;
+                    bool use_nn = get_rng().next_float() < 0.5 && !ant.is_visited(nn);
                     auto v = use_nn ? nn : select_next_node_(pheromone, heuristic,
                                                  nn_list,
                                                  nn_product_cache,
@@ -1044,12 +1044,9 @@ run_rgaco(const ProblemInstance &problem,
                     auto v_pred = ant.get_pred(v);
 
                     ant.relocate_rgaco(u, v, problem);
-
-                    if (!source_solution->contains_edge(u, v)) {
-                        ls_checklist.push_back(u);
-                        ls_checklist.push_back(v);
-                        ls_checklist.push_back(v_pred);
-                    }
+                    ls_checklist.push_back(u);
+                    ls_checklist.push_back(v);
+                    ls_checklist.push_back(v_pred);
                     u = v;
                 }
 
@@ -1078,7 +1075,7 @@ run_rgaco(const ProblemInstance &problem,
                     auto error = problem.calc_relative_error(best_ant->cost_);
                     best_cost_trace.add({ best_ant->cost_, error, iteration_best->changes_count }, iteration, main_timer());
 
-                    // model.update_trail_limits(best_ant->cost_);
+                    model.update_trail_limits(best_ant->cost_);
                 }
             }
 
