@@ -801,7 +801,7 @@ run_rgaco(const ProblemInstance &problem,
                     abort();
                 }
 
-                best_changes_pos = target_new_edges;
+                // best_changes_pos = target_new_edges;
 
                 u = start_node;
                 ant.update(source_solution->route_, source_solution->cost_);
@@ -839,8 +839,7 @@ run_rgaco(const ProblemInstance &problem,
                     //assert(iteration_best->validate());
 
                     auto error = problem.calc_relative_error(best_ant->cost_);
-                    best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
-                    // cout << iteration_best->changes_count << '\n';
+                    best_cost_trace.add({ best_ant->cost_, error, iteration_best->changes_count }, iteration, main_timer());
 
                     model.update_trail_limits(best_ant->cost_);
                 }

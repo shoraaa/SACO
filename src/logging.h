@@ -131,6 +131,8 @@ struct SolutionCost {
     // in percents
     double error_ = -1;
 
+    uint32_t changes = 0;
+
     template<typename Json>
     friend void to_json(Json& j, const SolutionCost& p) {
         j = Json(p.cost_);
