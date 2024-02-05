@@ -827,7 +827,7 @@ run_rgaco(const ProblemInstance &problem,
 
                 ant.cost_ = problem.calculate_route_length(ant.route_);
                 sol_costs[ant_idx] = ant.cost_;
-                ant.changes_count = best_changes_pos + 1;
+                ant.changes_count = best_changes_pos;
             }
 
             #pragma omp master
