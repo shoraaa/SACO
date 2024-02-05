@@ -365,6 +365,10 @@ public:
     }
 
     void evaporate_pheromone() {
+        get_pheromone().evaporate(1 - rho_, trail_limits_.min_);
+    }
+
+    void evaporate_pheromone_smooth() {
         get_pheromone().evaporate(1 - rho_, trail_limits_.min_, -rho_ * trail_limits_.min_);
     }
 
@@ -375,7 +379,19 @@ public:
     // Increases amount of pheromone on trails corresponding edges of the
     // given solution (sol). Returns deposited amount. 
     double deposit_pheromone(const Ant &sol) {
-        const double deposit = rho_ * (trail_limits_.max_ - trail_limits_.min_); //1.0 / sol.cost_;
+        const double deposit = 1.0 / sol.cost_;
+        auto prev_node = sol.route_.back();
+        auto &pheromone = get_pheromone();
+        for (auto node : sol.route_) {
+            // The global update of the pheromone trails
+            pheromone.increase(prev_node, node, deposit, trail_limits_.max_);
+            prev_node = node;
+        }
+        return deposit;
+    }
+
+    double deposit_pheromone_smooth(const Ant &sol) {
+        const double deposit = rho_ * (trail_limits_.max_ - trail_limits_.min_);
         auto prev_node = sol.route_.back();
         auto &pheromone = get_pheromone();
         for (auto node : sol.route_) {
