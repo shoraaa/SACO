@@ -36,7 +36,7 @@ struct ProgramOptions {
     uint32_t min_new_edges_ = 8;
 
     // rgaco
-    uint32_t min_changes = 6;
+    uint32_t min_changes = 4;
     uint32_t max_changes = 16;
 
     // Prob. that a solution will contain only edges with the

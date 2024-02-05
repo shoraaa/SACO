@@ -794,7 +794,7 @@ run_rgaco(const ProblemInstance &problem,
                     ant.relocate_rgaco(u, v, problem);
 
                     changes[changes_pos - 1] = v; 
-                    double cur_cost = ant.cost_ * get_rng().next_float();
+                    double cur_cost = ant.cost_ * pow(get_rng().next_float(), 0.2);
                     if (changes_pos >= min_changes && cur_cost < best_cost) {
                         best_cost = cur_cost;
                         best_changes_pos = changes_pos;
