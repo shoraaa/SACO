@@ -795,7 +795,11 @@ run_rgaco(const ProblemInstance &problem,
                 }
 
                 // simulate the best solution
-                assert(best_changes_pos != -1);
+                if (best_changes_pos == -1) {
+                    throw invalid_argument("best changes pos not found");
+                    abort();
+                }
+
                 u = start_node;
                 ant.update(source_solution->route_, source_solution->cost_);
                 for (size_t i = 0; i <= best_changes_pos; ++i) {

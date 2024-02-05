@@ -33,7 +33,7 @@ struct ProgramOptions {
 
     uint32_t ls_cand_list_size_ = 20u;  // #nodes used by the LS heuristics
 
-    uint32_t min_new_edges_ = 6;
+    uint32_t min_new_edges_ = 16;
 
     // Prob. that a solution will contain only edges with the
     // highest pheromone levels. Used to calculate pheromone trail limits.
