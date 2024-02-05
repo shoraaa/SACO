@@ -802,7 +802,6 @@ run_rgaco(const ProblemInstance &problem,
                     auto v_pred = ant.get_pred(v);
 
                     ant.relocate_rgaco(u, v, problem);
-                    ++new_edges;
                     ls_checklist.push_back(u);
                     ls_checklist.push_back(v);
                     ls_checklist.push_back(v_pred);
