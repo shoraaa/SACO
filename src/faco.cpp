@@ -148,7 +148,7 @@ Limits calc_trail_limits_cl(uint32_t /*dimension*/,
                             double p_best,
                             double rho,
                             double solution_cost) {
-    const auto tau_max = 1 / (solution_cost * (1. - rho));
+    const auto tau_max = 1.0;
     const auto avg = cand_list_size;  // This is far smaller than dimension/2
     const auto p = pow(p_best, 1. / avg);
     const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
@@ -583,7 +583,7 @@ run_facor(const ProblemInstance &problem,
                     
                     auto v_pred = ant.get_pred(v);
 
-                    ant.relocate_rgaco(u, v, problem);
+                    ant.relocate(u, v);
                     ++new_edges;
                     ls_checklist.push_back(u);
                     ls_checklist.push_back(v);
@@ -613,7 +613,7 @@ run_facor(const ProblemInstance &problem,
                     auto error = problem.calc_relative_error(best_ant->cost_);
                     best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
 
-                    model.update_trail_limits(best_ant->cost_);
+                    //model.update_trail_limits(best_ant->cost_);
                 }
             }
 
