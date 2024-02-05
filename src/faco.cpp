@@ -162,7 +162,8 @@ Limits calc_trail_limits_smooth(uint32_t dimension,
                             double solution_cost) {
     const auto tau_max = 1.0;
     const auto avg = cand_list_size;  // This is far smaller than dimension/2
-    const auto tau_min = min(tau_max, tau_max / cand_list_size);
+    const auto p = pow(p_best, 1. / avg);
+    const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
     return { tau_min, tau_max };
 }
 
@@ -703,6 +704,7 @@ run_rgaco(const ProblemInstance &problem,
     model.init(initial_cost);
     auto &pheromone = model.get_pheromone();
     pheromone.set_all_trails(model.trail_limits_.max_);
+    cout << "Trail min: " << model.trail_limits_.max_ << endl;
 
     vector<double> nn_product_cache(dimension * cl_size);
 
