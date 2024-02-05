@@ -33,7 +33,11 @@ struct ProgramOptions {
 
     uint32_t ls_cand_list_size_ = 20u;  // #nodes used by the LS heuristics
 
-    uint32_t min_new_edges_ = 32;
+    uint32_t min_new_edges_ = 8;
+
+    // rgaco
+    uint32_t min_changes = 4;
+    uint32_t max_changes = 16;
 
     // Prob. that a solution will contain only edges with the
     // highest pheromone levels. Used to calculate pheromone trail limits.
@@ -73,6 +77,8 @@ void dump(const ProgramOptions &opt, MapT &map) {
     map["local search"] = opt.local_search_;
     map["ls cand list size"] = opt.ls_cand_list_size_;
     map["min new edges"] = opt.min_new_edges_;
+    map["min changes"] = opt.min_changes;
+    map["max changes"] = opt.max_changes;
     map["p best"] = opt.p_best_;
     map["problem"] = opt.problem_path_;
     map["results dir"] = opt.results_dir_;

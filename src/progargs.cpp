@@ -83,6 +83,10 @@ ProgramOptions parse_program_options(int argc, char *argv[]) {
 
     p.add("min-new-edges", "Min # of new edges in a constructed sol.", opts.min_new_edges_);
 
+    p.add("min-changes", "Min # of changes.", opts.min_changes);
+
+    p.add("max-changes", "Max # of changes.", opts.max_changes);
+
     p.add("p-best", "p_best parameter of the MMAS", opts.p_best_);
 
     p.add("picture", "Generate route picture in SVG format?", opts.save_route_picture_);
