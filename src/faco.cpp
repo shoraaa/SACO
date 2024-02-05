@@ -583,7 +583,7 @@ run_facor(const ProblemInstance &problem,
                     
                     auto v_pred = ant.get_pred(v);
 
-                    ant.relocate(u, v, problem);
+                    ant.relocate(u, v);
                     ++new_edges;
                     ls_checklist.push_back(u);
                     ls_checklist.push_back(v);
@@ -595,7 +595,7 @@ run_facor(const ProblemInstance &problem,
                     two_opt_nn(problem, ant.route_, ls_checklist, opt.ls_cand_list_size_);
                 }
 
-                //ant.cost_ = problem.calculate_route_length(ant.route_);
+                ant.cost_ = problem.calculate_route_length(ant.route_);
                 sol_costs[ant_idx] = ant.cost_;
             }
 
@@ -763,7 +763,8 @@ run_rgaco(const ProblemInstance &problem,
                 ant.visited_bitmask_.set_bit(u);
 
                 vector<uint32_t> changes(target_new_edges);
-                uint32_t changes_pos = 0;
+                uint32_t changes_pos = 0, best_changes_pos = -1;
+                double best_cost = numeric_limits<double>::max();
                 while (new_edges <= target_new_edges) {
                     auto u_next = ant.get_succ(u);
                     ant.visited_bitmask_.set_bit(u_next);
@@ -777,9 +778,27 @@ run_rgaco(const ProblemInstance &problem,
                                                  problem.get_backup_neighbors(u, cl_size, bl_size),
                                                  ant, u);
                     
-                    changes[changes_pos++] = v;
                     ant.visited_bitmask_.set_bit(v);
                     
+                    auto v_pred = ant.get_pred(v);
+
+                    ant.relocate_rgaco(u, v, problem);
+                    ++new_edges;
+
+                    if (ant.route_.cost_ < best_cost) {
+                        best_changes_pos = changes_pos;
+                        best_cost = ant.route_.cost_;
+                    }
+                    changes[changes_pos++] = v;
+
+                    u = v;
+                }
+
+                // simulate the best solution
+                u = start_node;
+                ant.update(source_solution->route_, source_solution->cost_);
+                for (size_t i = 0; i <= best_changes_pos; ++i) {
+                    auto v = changes[i];
                     auto v_pred = ant.get_pred(v);
 
                     ant.relocate(u, v, problem);
@@ -787,9 +806,9 @@ run_rgaco(const ProblemInstance &problem,
                     ls_checklist.push_back(u);
                     ls_checklist.push_back(v);
                     ls_checklist.push_back(v_pred);
-
                     u = v;
                 }
+
                 if (use_ls) {
                     two_opt_nn(problem, ant.route_, ls_checklist, opt.ls_cand_list_size_);
                 }

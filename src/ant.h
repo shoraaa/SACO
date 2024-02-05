@@ -52,6 +52,28 @@ struct Solution {
         }
     }
 
+    void swap_(uint32_t i, uint32_t j) {
+        std::swap(node_indices_[route_[i]], node_indices_[route_[j]]);
+        std::swap(route_[i], route_[j]);
+    }
+
+    void relocate(uint32_t u, uint32_t v) {
+        // place v after u
+        uint32_t i = node_indices_[u], j = node_indices_[v];
+        if (j < i) {
+            swap_(i, j);
+            while (j < i - 1) {
+                swap_(j, j + 1);
+                ++j;
+            }
+        } else {
+            while (j > i + 1) {
+                swap_(j, j - 1);
+                --j;
+            }
+        }
+    }
+
     void swap_with_next(uint32_t i, const ProblemInstance& problem) {
         // swap route[i] with route[i + 1]
         uint32_t u = route_[i], v = get_succ(u);
@@ -61,7 +83,7 @@ struct Solution {
         cost_ += problem.get_distance(get_pred(u), u) + problem.get_distance(v, get_succ(v));
     }
 
-    void relocate(uint32_t u, uint32_t v, const ProblemInstance& problem) {
+    void relocate_rgaco(uint32_t u, uint32_t v, const ProblemInstance& problem) {
         // place v after u
         uint32_t i = node_indices_[u], j = node_indices_[v];
         while (j < i) {
