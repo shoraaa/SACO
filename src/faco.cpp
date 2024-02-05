@@ -946,7 +946,7 @@ run_rgaco(const ProblemInstance &problem,
 
     // The following are mainly for raporting purposes
     int64_t select_next_node_calls = 0;
-    Trace<ComputationsLog_t, SolutionCost> best_cost_trace(comp_log, "Solution cost", iterations, 1, true, 0.1);
+    Trace<ComputationsLog_t, SolutionCost> best_cost_trace(comp_log, "Solution cost", iterations, 1, true, 60);
     Timer main_timer;
 
     vector<double> sol_costs(ants_count);
