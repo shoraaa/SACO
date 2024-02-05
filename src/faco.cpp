@@ -596,7 +596,7 @@ run_facor(const ProblemInstance &problem,
                 uint32_t u = start_node;
                 ant.update(source_solution->route_, source_solution->cost_);
                 ant.visited_bitmask_.set_bit(u);
-                while (k < n && new_edges <= target_new_edges) {
+                while (k < dimension && new_edges <= target_new_edges) {
                     auto v = select_next_node_(pheromone, heuristic,
                                                  problem.get_nearest_neighbors(u, cl_size),
                                                  nn_product_cache,
@@ -867,7 +867,7 @@ run_rgaco(const ProblemInstance &problem,
             // Synchronize threads before pheromone update
             #pragma omp barrier
 
-            model.evaporate_pheromone();
+            model.evaporate_pheromone_smooth();
 
             #pragma omp master
             {
@@ -876,7 +876,7 @@ run_rgaco(const ProblemInstance &problem,
 
                 double start = omp_get_wtime();
 
-                model.deposit_pheromone(update_ant);
+                model.deposit_pheromone_smooth(update_ant);
 
                 pher_deposition_time += omp_get_wtime() - start;
 
