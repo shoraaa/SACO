@@ -124,6 +124,7 @@ struct Ant : public Solution {
     Bitmask  visited_bitmask_;
     uint32_t dimension_ = 0;
     uint32_t visited_count_ = 0;
+    uint32_t changes_count = 0;
 
     Ant() : Solution() {}
 
