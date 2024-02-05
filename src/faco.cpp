@@ -797,7 +797,7 @@ run_rgaco(const ProblemInstance &problem,
                     ant.relocate_rgaco(u, v, problem);
 
                     changes[changes_pos] = v; 
-                    double cur_cost = ant.cost_;// * get_rng().next_float();
+                    double cur_cost = ant.cost_ * get_rng().next_float();
                     if (changes_pos > min_new_edges && cur_cost < best_cost) {
                         best_cost = cur_cost;
                         best_changes_pos = changes_pos;
@@ -980,6 +980,9 @@ int main(int argc, char *argv[]) {
 
             Timer execution_timer;
             auto result = alg(problem, args, exlog);
+
+            cout << "REAL??? " << problem.calculate_route_length(result->route_);
+            cout << result->route_.size() << '\n';
 
             exlog("execution time", execution_timer());
             exlog("finished_at", get_current_datetime_string("-", ":", "T", true));
