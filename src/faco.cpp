@@ -582,7 +582,7 @@ run_facor(const ProblemInstance &problem,
                     
                     auto v_pred = ant.get_pred(v);
 
-                    ant.relocate(u, v);
+                    ant.relocate(u, v, problem);
                     ++new_edges;
                     ls_checklist.push_back(u);
                     ls_checklist.push_back(v);
@@ -594,7 +594,7 @@ run_facor(const ProblemInstance &problem,
                     two_opt_nn(problem, ant.route_, ls_checklist, opt.ls_cand_list_size_);
                 }
 
-                ant.cost_ = problem.calculate_route_length(ant.route_);
+                //ant.cost_ = problem.calculate_route_length(ant.route_);
                 sol_costs[ant_idx] = ant.cost_;
             }
 
