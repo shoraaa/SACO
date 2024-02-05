@@ -814,7 +814,7 @@ run_rgaco(const ProblemInstance &problem,
                 }
 
                 assert(ant.cost_ == problem.calculate_route_length(ant.route_));
-                ant.cost_ = problem.calculate_route_length(ant.route_);
+                // ant.cost_ = problem.calculate_route_length(ant.route_);
                 sol_costs[ant_idx] = ant.cost_;
             }
 
