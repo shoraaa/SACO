@@ -708,7 +708,7 @@ run_focused_aco(const ProblemInstance &problem,
                 ant.visited_bitmask_.set_bit(u);
                 while (new_edges <= target_new_edges) {
                     auto u_next = ant.get_succ(u);
-                    // ant.visited_bitmask_.set_bit(u_next);
+                    ant.visited_bitmask_.set_bit(u_next);
                     
                     auto nn = *problem.get_nearest_neighbors(u, cl_size).begin();
                     bool use_nn = (get_rng().next_float() < 0.5) && !ant.is_visited(nn);
