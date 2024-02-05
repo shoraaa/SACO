@@ -576,33 +576,30 @@ run_facor(const ProblemInstance &problem,
                 // We are counting edges (undirected) that are not present in
                 // the source_route. The factual # of new edges can be +1 as we
                 // skip the check for the closing edge (minor optimization).
-                uint32_t new_edges = 0;
+                uint32_t new_edges = 0, k = 0;
                 uint32_t u = start_node;
                 ant.update(source_solution->route_, source_solution->cost_);
                 ant.visited_bitmask_.set_bit(u);
-                while (new_edges <= target_new_edges) {
-                    auto u_next = ant.get_succ(u);
-                    ant.visited_bitmask_.set_bit(u_next);
-                    
-                    auto nn_list = problem.get_nearest_neighbors(u, cl_size);
-                    auto nn = *nn_list.begin();
-                    bool use_nn = 0; //(get_rng().next_float() < 0.5) && !ant.is_visited(nn);
-                    auto v = use_nn ? nn : select_next_node_(pheromone, heuristic,
-                                                 nn_list,
+                while (k < n && new_edges <= target_new_edges) {
+                    auto v = select_next_node_(pheromone, heuristic,
+                                                 problem.get_nearest_neighbors(u, cl_size),
                                                  nn_product_cache,
                                                  problem.get_backup_neighbors(u, cl_size, bl_size),
                                                  ant, u);
                     ant.visited_bitmask_.set_bit(v);
+                    ant.relocate(u, v);
                     
                     auto v_pred = ant.get_pred(v);
 
-                    ant.relocate(u, v);
-                    ++new_edges;
-                    ls_checklist.push_back(u);
-                    ls_checklist.push_back(v);
-                    ls_checklist.push_back(v_pred);
+                    if (!source_solution->contains_edge(u, v)) {
+                        ++new_edges;
+                        ls_checklist.push_back(u);
+                        ls_checklist.push_back(v);
+                        ls_checklist.push_back(v_pred);
+                    }
 
-                    u = v;
+                    u = v; 
+                    ++k;
                 }
                 if (use_ls) {
                     two_opt_nn(problem, ant.route_, ls_checklist, opt.ls_cand_list_size_);
