@@ -146,6 +146,6 @@ struct fmt::formatter<SolutionCost> {
 
     template <typename FormatContext>
     auto format(const SolutionCost& p, FormatContext& ctx) {
-        return format_to(ctx.out(), "{:.0f} ({:.2f}%)", p.cost_, p.error_);
+        return format_to(ctx.out(), "{:.0f} ({:.2f}%) ({:.0f})", p.cost_, p.error_, p.changes);
     }
 };
