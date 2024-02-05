@@ -744,6 +744,7 @@ run_rgaco(const ProblemInstance &problem,
             #pragma omp for schedule(static, 1) reduction(+ : select_next_node_calls)
             for (uint32_t ant_idx = 0; ant_idx < ants.size(); ++ant_idx) {
                 uint32_t target_new_edges = opt.min_new_edges_;
+                uint32_t min_new_edges = 4;
 
                 auto &ant = ants[ant_idx];
                 ant.initialize(dimension);
@@ -784,7 +785,7 @@ run_rgaco(const ProblemInstance &problem,
                     ant.relocate_rgaco(u, v, problem);
 
                     changes[changes_pos] = v;
-                    if (ant.cost_ < best_cost) {
+                    if (changes_pos > min_new_edges && ant.cost_ < best_cost) {
                         best_cost = ant.cost_;
                         best_changes_pos = changes_pos;
                     }
