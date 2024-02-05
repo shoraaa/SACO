@@ -1004,12 +1004,12 @@ run_rgaco(const ProblemInstance &problem,
                 uint32_t best_changes_pos = -1;
                 double best_cost = numeric_limits<double>::max();
                 for (uint32_t changes_pos = 1; changes_pos <= max_changes; ++changes_pos) {
-                    auto u_next = ant.get_succ(u);
-                    ant.visited_bitmask_.set_bit(u_next);
+                    //auto u_next = ant.get_succ(u);
+                    //ant.visited_bitmask_.set_bit(u_next);
                     
                     auto nn_list = problem.get_nearest_neighbors(u, cl_size);
                     auto nn = *nn_list.begin();
-                    bool use_nn = 0; //get_rng().next_float() < 0.5;
+                    bool use_nn = get_rng().next_float() < 0.5;
                     auto v = use_nn ? nn : select_next_node_(pheromone, heuristic,
                                                  nn_list,
                                                  nn_product_cache,
@@ -1044,9 +1044,12 @@ run_rgaco(const ProblemInstance &problem,
                     auto v_pred = ant.get_pred(v);
 
                     ant.relocate_rgaco(u, v, problem);
-                    ls_checklist.push_back(u);
-                    ls_checklist.push_back(v);
-                    ls_checklist.push_back(v_pred);
+
+                    if (!source_solution->contains_edge(u, v)) {
+                        ls_checklist.push_back(u);
+                        ls_checklist.push_back(v);
+                        ls_checklist.push_back(v_pred);
+                    }
                     u = v;
                 }
 
