@@ -155,6 +155,17 @@ struct Ant : public Solution {
         visited_bitmask_.set_bit(node);
     }
 
+    void validate(const ProblemInstance& problem) {
+        assert(route_.size() == problem.dimension_);
+        assert(cost_ == problem.calculate_route_length(route_));
+        visited_bitmask_.clear();
+
+        for (auto u : route_) {
+            assert(!is_visited(u));
+            visited_bitmask_.set_bit(u);
+        }
+    }
+
     [[nodiscard]] bool is_visited(uint32_t node) const {
         return visited_bitmask_.get_bit(node);
     }

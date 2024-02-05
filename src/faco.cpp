@@ -813,9 +813,7 @@ run_rgaco(const ProblemInstance &problem,
                     two_opt_nn(problem, ant.route_, ls_checklist, opt.ls_cand_list_size_);
                 }
 
-                assert(ant.route_.size() == dimension);
-                assert(ant.cost_ == problem.calculate_route_length(ant.route_));
-                cerr << ant.cost_ << ' ' << problem.calculate_route_length(ant.route_) << '\n';
+                ant.validate(problem);
                 // ant.cost_ = problem.calculate_route_length(ant.route_);
                 sol_costs[ant_idx] = ant.cost_;
             }
@@ -831,8 +829,7 @@ run_rgaco(const ProblemInstance &problem,
                 if (iteration_best->cost_ < best_ant->cost_) {
                     best_ant->update(iteration_best->route_, iteration_best->cost_);
 
-                    assert(problem.calculate_route_length(iteration_best->route_) == iteration_best->cost_);
-                    assert(iteration_best->route_.size() == dimension);
+                    //assert(iteration_best->validate());
 
                     auto error = problem.calc_relative_error(best_ant->cost_);
                     best_cost_trace.add({ best_ant->cost_, error }, iteration, main_timer());
