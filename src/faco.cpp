@@ -1009,7 +1009,7 @@ run_rgaco(const ProblemInstance &problem,
                     
                     auto nn_list = problem.get_nearest_neighbors(u, cl_size);
                     auto nn = *nn_list.begin();
-                    bool use_nn = get_rng().next_float() < 0.5 && !ant.is_visited(nn);
+                    bool use_nn = get_rng().next_float() < 0.2 && !ant.is_visited(nn);
                     auto v = use_nn ? nn : select_next_node_(pheromone, heuristic,
                                                  nn_list,
                                                  nn_product_cache,
@@ -1022,7 +1022,7 @@ run_rgaco(const ProblemInstance &problem,
                     ant.relocate_rgaco(u, v, problem);
 
                     changes[changes_pos - 1] = v; 
-                    double cur_cost = ant.cost_ * pow(get_rng().next_float(), 0.2);
+                    double cur_cost = ant.cost_ * pow(get_rng().next_float(), 0.01);
                     if (changes_pos >= min_changes && cur_cost < best_cost) {
                         best_cost = cur_cost;
                         best_changes_pos = changes_pos;
