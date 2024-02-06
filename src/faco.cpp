@@ -1082,7 +1082,7 @@ run_rgaco(const ProblemInstance &problem,
             // Synchronize threads before pheromone update
             #pragma omp barrier
 
-            model.evaporate_pheromone_smooth();
+            model.evaporate_pheromone();
 
             #pragma omp master
             {
@@ -1091,7 +1091,7 @@ run_rgaco(const ProblemInstance &problem,
 
                 double start = omp_get_wtime();
 
-                model.deposit_pheromone_smooth(update_ant);
+                model.deposit_pheromone(update_ant);
 
                 pher_deposition_time += omp_get_wtime() - start;
 
