@@ -929,7 +929,7 @@ run_rgaco(const ProblemInstance &problem,
     // Probabilistic model based on pheromone trails:
     CandListModel model(problem, opt);
 
-    model.calc_trail_limits_ = calc_trail_limits_smooth;
+    model.calc_trail_limits_ = calc_trail_limits_cl;
     model.init(initial_cost);
     auto &pheromone = model.get_pheromone();
     pheromone.set_all_trails(model.trail_limits_.max_);
