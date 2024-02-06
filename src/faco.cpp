@@ -161,7 +161,7 @@ Limits calc_trail_limits_smooth(uint32_t dimension,
                             double rho,
                             double solution_cost) {
     const auto tau_max = 1.0;
-    const auto tau_min = 0.1;
+    const auto tau_min = 0.5;
     // const auto avg = cand_list_size;  // This is far smaller than dimension/2
     // const auto p = pow(p_best, 1. / avg);
     // const auto tau_min = min(tau_max, tau_max * (1 - p) / ((avg - 1) * p));
@@ -929,7 +929,7 @@ run_rgaco(const ProblemInstance &problem,
     // Probabilistic model based on pheromone trails:
     CandListModel model(problem, opt);
 
-    model.calc_trail_limits_ = calc_trail_limits_cl;
+    model.calc_trail_limits_ = calc_trail_limits_smooth;
     model.init(initial_cost);
     auto &pheromone = model.get_pheromone();
     pheromone.set_all_trails(model.trail_limits_.max_);
@@ -1082,7 +1082,7 @@ run_rgaco(const ProblemInstance &problem,
             // Synchronize threads before pheromone update
             #pragma omp barrier
 
-            model.evaporate_pheromone();
+            model.evaporate_pheromone_smooth();
 
             #pragma omp master
             {
@@ -1091,7 +1091,7 @@ run_rgaco(const ProblemInstance &problem,
 
                 double start = omp_get_wtime();
 
-                model.deposit_pheromone(update_ant);
+                model.deposit_pheromone_smooth(update_ant);
 
                 pher_deposition_time += omp_get_wtime() - start;
 
